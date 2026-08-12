@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Gowun Batang", serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+
+  --color-bg: #fbf5ec;
+  --color-surface: #fffdf9;
+  --color-surface-soft: #fff6e8;
+
+  --color-ink: #241c33;
+  --color-ink-soft: #6e6480;
+  --color-muted: #9891a3;
+
+  --color-primary: #e8623c;
+  --color-primary-dark: #c94a28;
+  --color-primary-soft: #fde7db;
+
+  --color-secondary: #5b3e86;
+  --color-secondary-soft: #ede6f7;
+
+  --color-gold: #e7a339;
+  --color-gold-soft: #fbf0da;
+
+  --color-good: #1e8f5f;
+  --color-good-soft: #e1f3ea;
+  --color-pending: #c97a1f;
+  --color-pending-soft: #fbedda;
+  --color-info: #3d6fb0;
+  --color-info-soft: #e4edf8;
+
+  --shadow-card: 0 1px 2px rgba(36, 28, 51, 0.04), 0 8px 24px -12px rgba(36, 28, 51, 0.18);
+  --shadow-float: 0 12px 32px -8px rgba(36, 28, 51, 0.28);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.line {
+  border-color: rgba(36, 28, 51, 0.09);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.sunset-gradient {
+  background: linear-gradient(135deg, #241c4a 0%, #4a2f72 32%, #b14f5f 62%, #e8a23f 100%);
+}
+
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.14), transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.18), transparent 45%);
+  pointer-events: none;
+}
+
+textarea:focus,
+input:focus {
+  outline: none;
+}
