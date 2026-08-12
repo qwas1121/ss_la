@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>LA → 그랜드캐년 → 세도나 → 피닉스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#20263B; --clay:#C1592C; --clay-dark:#9A431E;
+  --sand:#F3E9D6; --sand-deep:#E8DABF; --sage:#7C8F72;
+  --gold:#E3A23A; --dusk:#3A3557; --card:#FFFDF9;
+  --line:rgba(32,38,59,0.12); --radius:18px; --ok:#5C8A5C;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{font-family:'Inter',sans-serif; background:var(--sand); color:var(--ink); min-height:100vh; padding-bottom:78px;}
+.hero{background:linear-gradient(160deg,var(--dusk) 0%, #4A3F63 45%, var(--clay-dark) 100%); color:#fff; padding:24px 20px 18px; border-radius:0 0 26px 26px; position:relative; overflow:hidden;}
+.hero::after{content:"";position:absolute; right:-40px; top:-40px; width:180px; height:180px; background:radial-gradient(circle, rgba(227,162,58,0.35), transparent 70%);}
+.hero-eyebrow{font-size:11px; letter-spacing:0.14em; text-transform:uppercase; opacity:0.75; font-weight:600; margin-bottom:6px;}
+.hero-title{font-family:'Fraunces',serif; font-size:23px; font-weight:700; margin:0 0 4px;}
+.hero-sub{font-size:12.5px; opacity:0.85; margin:0;}
+
+.view{display:none; padding:0 16px;}
+.view.active{display:block;}
+
+/* ---- 일정 뷰 ---- */
+.tabs{display:flex; gap:8px; overflow-x:auto; padding:16px 0 4px; scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:8px 14px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;}
+.tab .d{display:block; font-size:10px; font-weight:500; opacity:0.55; margin-bottom:1px;}
+.tab.active{background:var(--clay); border-color:var(--clay); color:#fff;}
+.tab.active .d{opacity:0.85;}
+.day-panel{display:none; padding-top:6px;}
+.day-panel.active{display:block;}
+.day-head{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; margin-bottom:12px;}
+.day-head h2{font-family:'Fraunces',serif; font-size:18px; margin:0 0 6px; color:var(--clay-dark);}
+.day-head p{font-size:13px; line-height:1.55; margin:0; opacity:0.85;}
+.day-budget{display:flex; gap:6px; align-items:center; margin-top:10px; font-size:12px; background:var(--sand-deep); border-radius:10px; padding:6px 10px; width:fit-content;}
+.section-label{font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--sage); margin:16px 2px 8px;}
+.item{position:relative; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:10px; display:flex; gap:12px; align-items:flex-start;}
+.item.done{opacity:0.45;}
+.item.done .item-title{text-decoration:line-through;}
+.icon{width:34px; height:34px; border-radius:10px; background:var(--sand-deep); display:flex; align-items:center; justify-content:center; font-size:16px; flex:0 0 34px;}
+.item-body{flex:1; min-width:0;}
+.item-time{font-size:11px; font-weight:700; color:var(--clay); margin-bottom:2px;}
+.item-title{font-size:14.5px; font-weight:600; margin:0 0 3px; line-height:1.35;}
+.item-note{font-size:12.5px; opacity:0.7; line-height:1.5; margin:0;}
+.item-tip{font-size:12px; background:#FBF3E3; border-left:3px solid var(--gold); padding:6px 8px; border-radius:6px; margin-top:6px; line-height:1.5;}
+.item-actions{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;}
+.btn{font-size:11.5px; font-weight:600; padding:6px 10px; border-radius:20px; border:1px solid var(--line); background:var(--sand); color:var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:4px; cursor:pointer;}
+.btn.map{background:var(--clay); color:#fff; border-color:var(--clay);}
+.btn.note{background:#fff;}
+.map-frame{display:none; margin-top:10px; border-radius:10px; overflow:hidden; border:1px solid var(--line);}
+.map-frame.open{display:block;}
+.map-frame iframe{width:100%; height:160px; border:0; display:block;}
+.tabs{display:flex; gap:8px; overflow-x:auto; padding:16px 0 8px; scrollbar-width:none; scroll-snap-type:x proximity;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{scroll-snap-align:start;}
+.swipe-hint{text-align:center; font-size:11px; opacity:0.4; margin:2px 0 10px;}
+.note-box{display:none; margin-top:8px;}
+.note-box.open{display:block;}
+.note-box textarea{width:100%; font-family:inherit; font-size:12.5px; border:1px solid var(--line); border-radius:8px; padding:8px; resize:vertical; min-height:50px; background:#fff;}
+
+.res-card{background:linear-gradient(135deg, var(--sage), #6b7d61); color:#fff; border-radius:14px; padding:12px 14px; margin-bottom:10px;}
+.res-card b{display:block; font-size:13.5px; margin-bottom:2px;}
+.res-card span{font-size:12px; opacity:0.9; display:block;}
+.res-card .paid{display:inline-block; font-size:10px; font-weight:700; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:20px; margin-top:6px;}
+
+/* ---- 예약 뷰 ---- */
+.res-group{margin-bottom:18px;}
+.res-group h3{font-family:'Fraunces',serif; font-size:15px; margin:0 0 8px; color:var(--clay-dark);}
+
+/* ---- 쇼핑 뷰 ---- */
+.shop-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:10px; display:flex; gap:12px;}
+.shop-badge{flex:0 0 52px; width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:700; font-size:15px; color:#fff; letter-spacing:-0.5px;}
+.shop-card h4{margin:0 0 4px; font-size:14px;}
+.shop-card p{margin:0; font-size:12.5px; opacity:0.75; line-height:1.5;}
+.shop-card .price{font-size:12px; color:var(--clay); font-weight:700; margin-top:5px;}
+.shop-card .price .krw{opacity:0.6; font-weight:500; color:var(--ink);}
+.shop-check{display:flex; align-items:flex-start; gap:8px; flex:1; min-width:0;}
+.shop-check input{margin-top:3px; flex:0 0 auto;}
+.pdf-btn{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin:16px 0; text-decoration:none; color:var(--ink);}
+.pdf-btn .ic2{width:38px; height:38px; border-radius:10px; background:var(--clay); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 38px;}
+.pdf-btn b{display:block; font-size:13.5px;}
+.pdf-btn span{font-size:11.5px; opacity:0.6;}
+
+/* ---- 예산 뷰 ---- */
+.budget-total{background:linear-gradient(135deg,var(--dusk),var(--clay-dark)); color:#fff; border-radius:16px; padding:18px; margin:16px 0; text-align:center;}
+.budget-total .num{font-family:'Fraunces',serif; font-size:28px; font-weight:700;}
+.budget-total .label{font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em;}
+.budget-row{display:flex; justify-content:space-between; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-bottom:8px; font-size:13px;}
+.budget-row .l{display:flex; align-items:center; gap:8px;}
+.budget-row .paid-dot{width:7px; height:7px; border-radius:50%; background:var(--ok);}
+.budget-row b{font-size:13px;}
+.budget-note{font-size:11.5px; opacity:0.55; text-align:center; margin-top:10px; line-height:1.6;}
+
+/* ---- 바텀 네비 ---- */
+.bottom-nav{position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom)); z-index:50;}
+.nav-btn{flex:1; text-align:center; background:none; border:none; font-family:inherit; font-size:10.5px; color:#8a8a8a; padding:6px 0; cursor:pointer; font-weight:600;}
+.nav-btn .ic{display:block; font-size:19px; margin-bottom:2px;}
+.nav-btn.active{color:var(--clay);}
+
+footer{text-align:center; font-size:11px; opacity:0.4; padding:20px 20px 6px;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">2026.09.19 — 09.26 · 8박 · 2인</div>
+  <h1 class="hero-title">LA 여행 (최종)</h1>
+  <p class="hero-sub">🎬 LA → 🌄 Grand Canyon → 🌵 Sedona → ☀️ Phoenix</p>
+</div>
+
+<!-- 일정 -->
+<div class="view active" id="view-schedule">
+  <div class="tabs" id="tabs"></div>
+  <p class="swipe-hint">👉 좌우로 스와이프해서 날짜 이동</p>
+  <div id="panels"></div>
+</div>
+
+<!-- 예약 -->
+<div class="view" id="view-reservations">
+  <a class="pdf-btn" href="예약내역.pdf" target="_blank" rel="noopener">
+    <div class="ic2">📄</div>
+    <div><b>예약내역 PDF 열기</b><span>숙소·레스토랑·투어 전체 요약본</span></div>
+  </a>
+  <div class="section-label">✅ 결제 완료</div>
+  <div id="res-paid"></div>
+  <div class="section-label">📌 확정 예약 (결제 없음/현장)</div>
+  <div id="res-confirmed"></div>
+  <div class="section-label">🕓 아직 정해야 할 것</div>
+  <div id="res-pending"></div>
+</div>
+
+<!-- 쇼핑 -->
+<div class="view" id="view-shopping">
+  <div class="section-label" style="margin-top:16px;">🎁 회사·가족 선물</div>
+  <div id="shop-gifts"></div>
+  <div class="section-label">🛍️ 내가 사고 싶은 것</div>
+  <div id="shop-wish"></div>
+</div>
+
+<!-- 예산 -->
+<div class="view" id="view-budget">
+  <div class="budget-total">
+    <div class="num">약 287만원</div>
+    <div class="label">2인 · 쇼핑 제외 · 여유있게 잡은 예상 총액</div>
+  </div>
+  <div class="section-label">항목별 내역</div>
+  <div id="budget-list"></div>
+  <p class="budget-note">💱 환율 1,417원 기준 추정치예요. 정확한 원화는 노션 "환율" 페이지에서 실시간으로 확인하세요.<br>쇼핑(SKIMS, Aritzia 등 개인 구매)은 별도 예산으로 챙기세요.</p>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" data-view="view-schedule" onclick="switchView('view-schedule',this)"><span class="ic">🗓️</span>일정</button>
+  <button class="nav-btn" data-view="view-reservations" onclick="switchView('view-reservations',this)"><span class="ic">🧾</span>예약</button>
+  <button class="nav-btn" data-view="view-shopping" onclick="switchView('view-shopping',this)"><span class="ic">🛍️</span>쇼핑</button>
+  <button class="nav-btn" data-view="view-budget" onclick="switchView('view-budget',this)"><span class="ic">💰</span>예산</button>
+</div>
+
+<script>
+const M = (q) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+
+/* ============ 일정 데이터 ============ */
+const DATA = [
+{ key:"d1", tab:"Day 1", date:"9.19(토)", title:"🌴 LA 도착",
+  concept:"LAX 도착 → 인앤아웃 점심 → 호텔 체크인 → Venice Beach → Santa Monica → 생일 저녁",
+  budget:"약 25만원 (Meat On Ocean 포함)",
+  reservations:[{label:"Meat On Ocean", detail:"18:30 · 2명 · 생일/창가 요청완료", paid:false}],
+  items:[
+    {t:"09:40", icon:"🛬", title:"LAX 도착", note:"입국심사 → 수하물 → 렌터카", tip:"입국심사 밀릴 수 있음, 여유있게 생각하기", place:null},
+    {t:"12:30", icon:"🍔", title:"In-N-Out 점심", note:"LAX 근처", tip:"저녁이 스테이크니 적당히만 먹기", place:"In-N-Out Burger LAX"},
+    {t:"14:00", icon:"🏨", title:"Aventura Hotel 체크인", note:"짐 정리, 휴식", tip:"이후 이동은 Uber/택시, 렌터카는 호텔에 주차", place:"Aventura Hotel Los Angeles"},
+    {t:"16:20", icon:"🌊", title:"Venice Beach", note:"Muscle Beach, Skate Park", tip:null, place:"Venice Beach Boardwalk"},
+    {t:"17:30", icon:"🎡", title:"Santa Monica Pier", note:"Route 66 종점 표지판", tip:"식당 예약 15분 전 도착 목표로 역산해서 출발", place:"Santa Monica Pier"},
+    {t:"18:30", icon:"🥩", title:"Meat On Ocean (생일 저녁)", note:"예약자 Sehee Son", tip:"디저트는 꼭 주문하고 초 요청하기. 창가는 확정 보장 아님", place:"Meat On Ocean Santa Monica"}
+  ]},
+{ key:"d2", tab:"Day 2", date:"9.20(일)", title:"🎬 LA 시내 & 쇼핑",
+  concept:"Pink Wall → Madhappy+Aritzia → Beverly Hills → Rodeo Dr(Alo) → Erewhon → Hollywood → Griffith 야경",
+  budget:"약 15만원 (식비 기준, 쇼핑 별도)",
+  reservations:[],
+  items:[
+    {t:"09:00", icon:"☕", title:"브런치", note:"Elephante 등", tip:null, place:null},
+    {t:"10:30", icon:"💗", title:"Pink Wall", note:"짧게 사진만", tip:"오전 방문 추천, 오후엔 사람 많음", place:"Paul Smith Pink Wall Melrose"},
+    {t:"10:50", icon:"🛍️", title:"Madhappy + Aritzia", note:"멜로즈 애비뉴", tip:null, place:"Madhappy Melrose Ave"},
+    {t:"11:30", icon:"🏙️", title:"Beverly Hills", note:"사인, 야자수 거리", tip:null, place:"Beverly Hills Sign"},
+    {t:"12:00", icon:"🛍️", title:"Rodeo Drive + Alo Yoga", note:"명품거리", tip:null, place:"Rodeo Drive Beverly Hills"},
+    {t:"13:00", icon:"🥤", title:"Erewhon 스무디", note:"테이크아웃만", tip:"식사는 브런치로 충분, 스무디만 가볍게", place:"Erewhon Beverly Hills"},
+    {t:"15:00", icon:"🎬", title:"Hollywood", note:"Walk of Fame", tip:"배고프면 Ovation Hollywood 안에서 해결(CPK, Chicken Guy! 등)", place:"TCL Chinese Theatre Hollywood"},
+    {t:"18:00", icon:"🌇", title:"Griffith Observatory", note:"⭐ 오늘의 하이라이트", tip:"노을~야경 19:00~20:30이 베스트, 무조건 사수할 것", place:"Griffith Observatory"}
+  ]},
+{ key:"d3", tab:"Day 3", date:"9.21(월)", title:"🎢 유니버셜 스튜디오",
+  concept:"오픈런 → Super Nintendo World → Studio Tour → 해리포터 → 저녁",
+  budget:"약 15만원 (익스프레스 패스 별도 결제완료)",
+  reservations:[{label:"Universal Express Pass", detail:"9/21 · 2명 · 한국 여행사 구매", paid:true, amount:"628,051원"}],
+  items:[
+    {t:"07:00", icon:"🍩", title:"CityWalk 아침", note:"Voodoo Doughnut", tip:"산 음식 파크 안 반입 가능", place:"Universal CityWalk Hollywood"},
+    {t:"08:00", icon:"🎮", title:"Super Nintendo World", note:"Mario Kart 먼저", tip:"Early Access 활용하면 줄 없이 탈 수 있음", place:"Universal Studios Hollywood"},
+    {t:"—", icon:"🎥", title:"Studio Tour", note:"할리우드점 오리지널, 약 1시간", tip:null, place:null},
+    {t:"—", icon:"🪄", title:"해리포터 월드", note:"버터비어", tip:null, place:null},
+    {t:"저녁", icon:"🌃", title:"저녁", note:"CityWalk 또는 밖(Musso & Frank)", tip:"다음날 장거리 운전, 너무 늦게까지 있지 않기", place:"Musso & Frank Grill"}
+  ]},
+{ key:"d4", tab:"Day 4", date:"9.22(화)", title:"🚗 LA → 그랜드캐년",
+  concept:"이른 출발 → Route66 셀리그먼 → 사우스림 일몰 → El Tovar 저녁",
+  budget:"약 30만원 (El Tovar 저녁 포함)",
+  reservations:[
+    {label:"El Tovar Dining Room", detail:"19:00 · 2명", paid:false, confirmed:true},
+    {label:"Kachina Lodge", detail:"9.22~9.23 · 1박", paid:false}
+  ],
+  items:[
+    {t:"06:00", icon:"🚗", title:"LA 출발", note:"늦어도 07:00 전 필수", tip:"이거 늦으면 하루 전체가 밀림, 알람 여러개 맞추기", place:null},
+    {t:"12:00", icon:"🍔", title:"Seligman 점심", note:"Snow Cap 또는 Westside Lilo's", tip:"당근케이크 유명(Lilo's)", place:"Delgadillo's Snow Cap Drive-In Seligman"},
+    {t:"15:00", icon:"🏨", title:"Kachina Lodge 체크인", note:"El Tovar 프론트에서 체크인", tip:"Kachina엔 식당 없음, El Tovar/Harvey House 도보 이용", place:"Kachina Lodge Grand Canyon"},
+    {t:"15:30", icon:"🌅", title:"일몰 감상", note:"⭐ Yavapai Point 추천", tip:"밤에 급격히 추워짐, 겉옷 필수. 엘크 발정기라 30m 이상 거리두기", place:"Yavapai Point Grand Canyon"},
+    {t:"19:00", icon:"🥩", title:"El Tovar 저녁", note:"예약완료", tip:"Elk Bolognese(특색있음) or Filet Mignon(무난)", place:"El Tovar Hotel Grand Canyon"}
+  ]},
+{ key:"d5", tab:"Day 5", date:"9.23(수)", title:"📸 앤텔로프캐년",
+  concept:"일출 → 이른 출발 → Antelope Canyon 투어 → Horseshoe Bend → Flagstaff",
+  budget:"약 25만원 (투어 별도 결제완료)",
+  reservations:[
+    {label:"Antelope Canyon Tour", detail:"12:40~14:00 · 2명", paid:true, amount:"$316.54 (약 45만원)"},
+    {label:"Little America Hotel", detail:"9.23~9.24 · Flagstaff", paid:false}
+  ],
+  items:[
+    {t:"06:00", icon:"🌅", title:"그랜드캐년 일출", note:"", tip:null, place:null},
+    {t:"06:30", icon:"🍳", title:"Harvey House 아침", note:"06:30 오픈", tip:"테이크아웃 가능, 시간 없으면 포장", place:"Harvey House Cafe Grand Canyon"},
+    {t:"07:30", icon:"🚗", title:"Page 방향 출발", note:"약 2.5시간", tip:"늦어도 07:30, 이보다 늦으면 투어 지각 위험", place:null},
+    {t:"12:10", icon:"📸", title:"Antelope Canyon 투어 집결", note:"체크인 마감 12:20", tip:"⚠️ 가방·삼각대·셀카봉 전면 금지! 물병만 손에 들고 가능", place:"Adventurous Antelope Canyon Tours Page AZ"},
+    {t:"14:15", icon:"🍽️", title:"점심(브런치겸)", note:"Ranch House Grille / Big John's BBQ", tip:null, place:"Ranch House Grille Page AZ"},
+    {t:"—", icon:"🌉", title:"Horseshoe Bend", note:"", tip:"⚠️ 가드레일 거의 없음, 가장자리 가까이 가지 않기, 사진 찍을때 특히 주의", place:"Horseshoe Bend Page AZ"},
+    {t:"저녁", icon:"🌆", title:"Flagstaff 이동&저녁", note:"Bigfoot BBQ / Atria / Fat Olives", tip:null, place:"Downtown Flagstaff"}
+  ]},
+{ key:"d6", tab:"Day 6", date:"9.24(목)", title:"🌵 세도나 → 피닉스",
+  concept:"Bell Rock→Airport Mesa→Tlaquepaque → Phoenix 이동 → 법인장님 저녁",
+  budget:"약 20만원 (법인장님 저녁 별도)",
+  reservations:[
+    {label:"법인장님 저녁", detail:"19:00 · Chandler · 4명", paid:false},
+    {label:"Airbnb", detail:"9.24~9.26 · Scottsdale · 2박", paid:false}
+  ],
+  items:[
+    {t:"08:00", icon:"🚗", title:"Flagstaff 출발", note:"세도나까지 30~40분", tip:null, place:null},
+    {t:"08:30", icon:"🔔", title:"Bell Rock", note:"아침 일찍 방문", tip:"덜 붐빌 때 사진 찍기 좋음", place:"Bell Rock Sedona"},
+    {t:"09:30", icon:"🛬", title:"Airport Mesa", note:"360도 전망", tip:null, place:"Airport Mesa Sedona"},
+    {t:"10:30", icon:"🛍️", title:"Tlaquepaque", note:"쇼핑+점심(Rene's/El Rincon)", tip:null, place:"Tlaquepaque Arts and Shopping Village"},
+    {t:"14:00", icon:"🚗", title:"Phoenix로 출발", note:"약 2시간", tip:null, place:null},
+    {t:"16:00", icon:"🏠", title:"Airbnb 체크인", note:"", tip:"체크인 코드 미리 확인해두기", place:"Scottsdale Airbnb"},
+    {t:"19:00", icon:"🥩", title:"법인장님 저녁", note:"Chandler, 캐주얼톤", tip:null, place:"Chandler AZ restaurants"}
+  ]},
+{ key:"d7", tab:"Day 7", date:"9.25(금)", title:"☀️ 피닉스 쇼핑의 날",
+  concept:"Desert Botanical Garden → 온종일 쇼핑 → 저녁은 자유",
+  budget:"약 15만원 (정원 입장료 별도 결제완료, 쇼핑비 별도)",
+  reservations:[{label:"Desert Botanical Garden", detail:"08:00 · 2명", paid:true, amount:"$39.90 (약 5.7만원)"}],
+  items:[
+    {t:"08:00", icon:"🌵", title:"Desert Botanical Garden", note:"+Hole-in-the-Rock(무료)", tip:"더위 피해서 아침 방문, 물/선크림/모자 필수", place:"Desert Botanical Garden Phoenix"},
+    {t:"11:00", icon:"🎣", title:"Bass Pro Shops", note:"Mesa Riverview", tip:null, place:"Bass Pro Shops Mesa Riverview"},
+    {t:"14:30", icon:"🛍️", title:"Fashion Square", note:"SKIMS, Common Hype, North Face Outlet", tip:null, place:"Scottsdale Fashion Square"},
+    {t:"—", icon:"🏙️", title:"Old Town Scottsdale", note:"Prickly Pear Candy 구매", tip:"Shades of the West, 재고 전화확인 추천", place:"Old Town Scottsdale"},
+    {t:"—", icon:"🎯", title:"Target", note:"Touchland", tip:null, place:"Target Scottsdale Talking Stick Way"},
+    {t:"—", icon:"🛒", title:"Trader Joe's", note:"프레첼·커피빈·무화과크래커", tip:null, place:"Trader Joe's Scottsdale"},
+    {t:"18:30", icon:"🍔", title:"저녁 자유시간", note:"In-N-Out 포장 or 숙소 휴식", tip:"다음날 새벽 출발, 무리하지 않기", place:null}
+  ]},
+{ key:"d8", tab:"Day 8", date:"9.26(토)", title:"✈️ 귀국",
+  concept:"새벽 출발 → 렌터카 반납 → PHX 06:15",
+  budget:"약 3만원 (공항 간단 식사)",
+  reservations:[],
+  items:[
+    {t:"새벽", icon:"🧳", title:"숙소 출발", note:"전날 밤 짐 정리 필수", tip:null, place:null},
+    {t:"—", icon:"🚙", title:"렌터카 반납", note:"연료 확인", tip:null, place:"Phoenix Sky Harbor Airport Car Rental Return"},
+    {t:"06:15", icon:"✈️", title:"PHX 출발", note:"", tip:"여권·지갑·항공권·충전기 최종 확인", place:"Phoenix Sky Harbor International Airport"}
+  ]}
+];
+
+/* ============ 예약 데이터 (전체 통합) ============ */
+const RES_PAID = [
+  {label:"Universal Express Pass", when:"Day 3 · 9.21", amount:"628,051원", detail:"2명 · 한국 여행사(마이리얼트립) 구매, 바우처 현장교환"},
+  {label:"Antelope Canyon Tour", when:"Day 5 · 9.23", amount:"$316.54 (약 448,000원)", detail:"12:40~14:00 · Adventurous Antelope Canyon Tours"},
+  {label:"Desert Botanical Garden", when:"Day 7 · 9.25", amount:"$39.90 (약 56,500원)", detail:"08:00 입장 · 2명"}
+];
+const RES_CONFIRMED = [
+  {label:"El Tovar Dining Room", when:"Day 4 · 9.22", detail:"19:00 · 2명 · 예약만 완료, 현장결제"},
+  {label:"Meat On Ocean", when:"Day 1 · 9.19", detail:"18:30 · 2명 · 생일/창가 요청 전달됨"}
+];
+const RES_PENDING = [
+  {label:"법인장님 저녁 식당", when:"Day 6 · 9.24", detail:"Cheddar's / Oregano's / Craft 64 중 최종 미정"},
+  {label:"Flagstaff 저녁", when:"Day 5 · 9.23", detail:"Bigfoot BBQ / Atria / Fat Olives 중 미정"}
+];
+
+/* ============ 쇼핑 데이터 ============ */
+const RATE = 1417; // 1 USD 기준 원화, 환율 바뀌면 이 숫자만 수정
+const krw = (usd) => `약 ${Math.round(usd*RATE).toLocaleString('ko-KR')}원`;
+
+const SHOP_GIFTS = [
+  {name:"Prickly Pear Candy", note:"팀원 40명용 낱개싱글즈 2케이스(60개) + 엄마·아빠·동생용 8oz박스 각 1개", usdEach:"박스당 $10.95", usd:32.85, where:"Old Town Scottsdale, Shades of the West", init:"PP", color:"#C1592C"},
+  {name:"Touchland 손소독제", note:"팀원 6 + 본인 1 + 동생 1 + 필라테스쌤 1 + 여유분 1 = 10개", usdEach:"개당 $9~10", usd:95, where:"Target Scottsdale", init:"TL", color:"#3A7CA5"},
+  {name:"Trader Joe's 간식", note:"초코프레첼 대용량 4 + 미니 5, 커피빈 3, 무화과크래커 2", usdEach:"개당 $2.49~4.49", usd:47.86, where:"Trader Joe's Scottsdale", init:"TJ", color:"#8A9B7E"}
+];
+const SHOP_WISH = [
+  {name:"SKIMS", note:"이너웨어·라운지웨어, 한국 매장 없음", usdEach:"$38~98", usd:68, where:"Scottsdale Fashion Square", init:"SK", color:"#20263B"},
+  {name:"Aritzia", note:"미니멀 컨템포러리", usdEach:"$60~250", usd:150, where:"Day 2 멜로즈 (8100 Melrose Ave)", init:"AR", color:"#9A431E"},
+  {name:"Alo Yoga", note:"애슬레저", usdEach:"$68~128", usd:98, where:"Day 2 로데오 드라이브", init:"AY", color:"#5C5C5C"},
+  {name:"Common Hype", note:"한정판 스니커(조던, 예즈 등)", usdEach:"$150~500+", usd:300, where:"Scottsdale Fashion Square 2층", init:"CH", color:"#E3A23A"},
+  {name:"The North Face Outlet", note:"아웃도어 아울렛 할인", usdEach:"$35~130", usd:80, where:"Scottsdale Fashion Square", init:"TNF", color:"#3A5A40"},
+  {name:"Madhappy", note:"스트릿 캐주얼", usdEach:"$150~200", usd:175, where:"Day 2 멜로즈", init:"MH", color:"#7C8F72"}
+];
+
+/* ============ 예산 데이터 ============ */
+const BUDGET = [
+  {label:"전체 식비 (8일치, 2인)", amount:"약 137만원", paid:false},
+  {label:"법인장님 저녁 (4명분)", amount:"약 12만원", paid:false},
+  {label:"Trader Joe's 간식·선물", amount:"약 6.8만원", paid:false},
+  {label:"Prickly Pear Candy", amount:"약 10만원", paid:false},
+  {label:"Touchland (10개)", amount:"약 13만원", paid:false},
+  {label:"Universal Express Pass", amount:"628,051원", paid:true},
+  {label:"Antelope Canyon Tour", amount:"약 44.9만원", paid:true},
+  {label:"Desert Botanical Garden", amount:"약 5.7만원", paid:true}
+];
+
+/* ============ 렌더링 ============ */
+const tabsEl = document.getElementById('tabs');
+const panelsEl = document.getElementById('panels');
+
+function loadNote(id){ return localStorage.getItem('note_'+id) || ''; }
+function saveNote(id, val){ localStorage.setItem('note_'+id, val); }
+function loadDone(id){ return localStorage.getItem('done_'+id) === '1'; }
+
+DATA.forEach((day, i) => {
+  const tab = document.createElement('div');
+  tab.className = 'tab' + (i===0 ? ' active' : '');
+  tab.dataset.key = day.key;
+  tab.innerHTML = `<span class="d">${day.date}</span>${day.tab}`;
+  tab.onclick = () => selectDay(day.key);
+  tabsEl.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'day-panel' + (i===0 ? ' active' : '');
+  panel.id = 'panel-' + day.key;
+
+  let html = `<div class="day-head"><h2>${day.title}</h2><p>${day.concept}</p><div class="day-budget">💰 ${day.budget}</div></div>`;
+
+  if(day.reservations.length){
+    html += `<div class="section-label">확정 예약</div>`;
+    day.reservations.forEach(r => {
+      html += `<div class="res-card"><b>${r.paid ? '✅' : (r.confirmed ? '📌' : '🕓')} ${r.label}</b><span>${r.detail}</span>${r.amount ? `<span class="paid">${r.amount}</span>`:''}</div>`;
+    });
+  }
+
+  html += `<div class="section-label">오늘의 일정</div>`;
+  day.items.forEach((it, idx) => {
+    const id = day.key + '-' + idx;
+    const done = loadDone(id) ? ' done' : '';
+    html += `<div class="item${done}" id="item-${id}">
+      <div class="icon">${it.icon}</div>
+      <div class="item-body">
+        <div class="item-time">${it.t}</div>
+        <p class="item-title">${it.title}</p>
+        ${it.note ? `<p class="item-note">${it.note}</p>` : ''}
+        ${it.tip ? `<div class="item-tip">💡 ${it.tip}</div>` : ''}
+        <div class="item-actions">
+          ${it.place ? `<a class="btn map" href="${M(it.place)}" target="_blank" rel="noopener">📍 길찾기</a>` : ''}
+          ${it.place ? `<span class="btn note" onclick="toggleMap('${id}')">🗺️ 지도</span>` : ''}
+          <span class="btn check" onclick="toggleDone('${id}')">✓ 완료</span>
+          <span class="btn note" onclick="toggleNote('${id}')">✏️ 메모</span>
+        </div>
+        ${it.place ? `<div class="map-frame" id="mapframe-${id}"><iframe src="https://maps.google.com/maps?q=${encodeURIComponent(it.place)}&output=embed" loading="lazy"></iframe></div>` : ''}
+        <div class="note-box" id="notebox-${id}">
+          <textarea placeholder="여기에 개인 메모 입력 (자동 저장됨)" oninput="saveNote('${id}', this.value)">${loadNote(id)}</textarea>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  panel.innerHTML = html;
+  panelsEl.appendChild(panel);
+});
+
+function selectDay(key){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.key === key));
+  document.querySelectorAll('.day-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
+  const activeTab = document.querySelector('.tab.active');
+  if(activeTab) activeTab.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function toggleMap(id){
+  document.getElementById('mapframe-' + id).classList.toggle('open');
+}
+/* ---- 스와이프로 날짜 이동 ---- */
+const DAY_KEYS = DATA.map(d => d.key);
+let touchStartX = 0, touchStartY = 0;
+const panelsWrap = document.getElementById('panels');
+panelsWrap.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, {passive:true});
+panelsWrap.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return; // 세로 스크롤과 구분
+  const activeKey = document.querySelector('.tab.active').dataset.key;
+  const idx = DAY_KEYS.indexOf(activeKey);
+  if(dx < 0 && idx < DAY_KEYS.length - 1) selectDay(DAY_KEYS[idx + 1]); // 왼쪽으로 스와이프 → 다음날
+  if(dx > 0 && idx > 0) selectDay(DAY_KEYS[idx - 1]); // 오른쪽으로 스와이프 → 이전날
+}, {passive:true});
+function toggleDone(id){
+  const el = document.getElementById('item-' + id);
+  el.classList.toggle('done');
+  localStorage.setItem('done_'+id, el.classList.contains('done') ? '1' : '0');
+}
+function toggleNote(id){
+  document.getElementById('notebox-' + id).classList.toggle('open');
+}
+
+/* ---- 예약 뷰 렌더 ---- */
+function renderRes(){
+  document.getElementById('res-paid').innerHTML = RES_PAID.map(r =>
+    `<div class="res-card"><b>✅ ${r.label}</b><span>${r.when}</span><span>${r.detail}</span><span class="paid">${r.amount}</span></div>`
+  ).join('');
+  document.getElementById('res-confirmed').innerHTML = RES_CONFIRMED.map(r =>
+    `<div class="res-card" style="background:linear-gradient(135deg,var(--clay),var(--clay-dark));"><b>📌 ${r.label}</b><span>${r.when}</span><span>${r.detail}</span></div>`
+  ).join('');
+  document.getElementById('res-pending').innerHTML = RES_PENDING.map(r =>
+    `<div class="shop-card"><h4>🕓 ${r.label}</h4><p>${r.when}</p><p>${r.detail}</p></div>`
+  ).join('');
+}
+
+/* ---- 쇼핑 뷰 렌더 ---- */
+function shopCard(s, id, checked){
+  return `<div class="shop-card">
+    <div class="shop-badge" style="background:${s.color}">${s.init}</div>
+    <label class="shop-check"><input type="checkbox" ${checked} onchange="localStorage.setItem('shop_${id}', this.checked?'1':'0')">
+      <span><h4>${s.name}</h4><p>${s.note}</p>
+      <p class="price">${s.usdEach} <span class="krw">(총 ${krw(s.usd)})</span></p>
+      <p style="font-size:11.5px; opacity:0.55; margin-top:2px;">${s.where}</p></span>
+    </label></div>`;
+}
+function renderShop(){
+  document.getElementById('shop-gifts').innerHTML = SHOP_GIFTS.map((s,i) => {
+    const id = 'gift-'+i;
+    const checked = localStorage.getItem('shop_'+id) === '1' ? 'checked' : '';
+    return shopCard(s, id, checked);
+  }).join('');
+  document.getElementById('shop-wish').innerHTML = SHOP_WISH.map((s,i) => {
+    const id = 'wish-'+i;
+    const checked = localStorage.getItem('shop_'+id) === '1' ? 'checked' : '';
+    return shopCard(s, id, checked);
+  }).join('');
+}
+
+/* ---- 예산 뷰 렌더 ---- */
+function renderBudget(){
+  document.getElementById('budget-list').innerHTML = BUDGET.map(b =>
+    `<div class="budget-row"><div class="l">${b.paid ? '<span class="paid-dot"></span>' : ''}${b.label}</div><b>${b.amount}</b></div>`
+  ).join('');
+}
+
+renderRes(); renderShop(); renderBudget();
+
+function switchView(id, btn){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top:0});
+}
+</script>
+</body>
+</html>
