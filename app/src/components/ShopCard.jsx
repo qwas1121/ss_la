@@ -53,12 +53,13 @@ export default function ShopCard({ item, rate, onToggle, onRemove, onEdit }) {
           />
         </div>
         {item.note && <p className="m-0 mt-1 text-[12px] leading-relaxed text-ink-soft">{item.note}</p>}
-        {hasPrice ? (
+        {hasPrice && (
           <p className="m-0 mt-1 text-[12px] font-bold text-primary-dark">
             ${item.price_usd} × {qty}개 · 개당 약 {formatKRW(unitKrw)} · 총 합 약 {formatKRW(totalKrw)}
           </p>
-        ) : (
-          item.price_text && <p className="m-0 mt-1 text-[12px] font-bold text-primary-dark">{item.price_text}</p>
+        )}
+        {item.price_text && (
+          <p className={`m-0 mt-1 text-[12px] ${hasPrice ? "text-ink-soft" : "font-bold text-primary-dark"}`}>{item.price_text}</p>
         )}
         {item.store && <p className="m-0 mt-0.5 text-[11.5px] text-muted">📍 {item.store}</p>}
       </label>

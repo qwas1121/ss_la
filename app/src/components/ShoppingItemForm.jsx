@@ -5,6 +5,7 @@ import { formatKRW } from "../lib/format";
 const emptyState = (initial) => ({
   title: initial?.title ?? "",
   note: initial?.note ?? "",
+  priceText: initial?.price_text ?? "",
   priceUsd: initial?.price_usd != null ? String(initial.price_usd) : "",
   quantity: initial ? String(initial.quantity ?? 1) : "1",
   store: initial?.store ?? "",
@@ -40,6 +41,7 @@ export default function ShoppingItemForm({ list, initial, rate, onSubmit, onCanc
         store: form.store.trim(),
         imageUrl,
       };
+      if (isEdit) payload.priceText = form.priceText.trim();
       if (!isEdit) payload.list = list;
       await onSubmit(payload);
       if (!isEdit) {
@@ -113,6 +115,20 @@ export default function ShoppingItemForm({ list, initial, rate, onSubmit, onCanc
         placeholder="구매처 (선택)"
         className="notch-sm border-2 border-ink bg-white px-3 py-2 font-sans text-[12.5px]"
       />
+
+      {isEdit && initial?.price_text && (
+        <div>
+          <input
+            value={form.priceText}
+            onChange={set("priceText")}
+            placeholder="기존 가격 메모"
+            className="notch-sm w-full border-2 border-ink bg-white px-3 py-2 font-sans text-[12.5px]"
+          />
+          <p className="m-0 mt-1 text-[11px] leading-relaxed text-muted">
+            예전에 자유 텍스트로 적어둔 가격 메모예요. 위 $단가를 채우면 카드에 새 계산과 같이 표시돼요. 필요 없으면 비워두고 저장하면 지워져요.
+          </p>
+        </div>
+      )}
 
       {form.priceUsd.trim() && (
         <p className="m-0 text-[11.5px] font-bold text-primary-dark">

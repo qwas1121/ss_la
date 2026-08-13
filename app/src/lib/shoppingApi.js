@@ -27,10 +27,10 @@ export async function addShoppingItem({ list, title, note, priceUsd, quantity, s
   return data;
 }
 
-export async function updateShoppingItem(id, { title, note, priceUsd, quantity, store, imageUrl }) {
+export async function updateShoppingItem(id, { title, note, priceText, priceUsd, quantity, store, imageUrl }) {
   const { data, error } = await supabase
     .from("shopping_items")
-    .update({ title, note, price_usd: priceUsd, quantity, store, image_url: imageUrl })
+    .update({ title, note, price_text: priceText, price_usd: priceUsd, quantity, store, image_url: imageUrl })
     .eq("id", id)
     .select()
     .single();
