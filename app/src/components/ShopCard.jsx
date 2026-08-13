@@ -1,5 +1,29 @@
-export default function ShopCard({ item, onToggle, onRemove }) {
+import { useState } from "react";
+import ShoppingItemForm from "./ShoppingItemForm";
+import { formatKRW } from "../lib/format";
+
+export default function ShopCard({ item, rate, onToggle, onRemove, onEdit }) {
+  const [editing, setEditing] = useState(false);
   const isChecked = item.checked;
+
+  if (editing) {
+    return (
+      <ShoppingItemForm
+        initial={item}
+        rate={rate}
+        onCancel={() => setEditing(false)}
+        onSubmit={async (payload) => {
+          await onEdit(item.id, payload);
+          setEditing(false);
+        }}
+      />
+    );
+  }
+
+  const hasPrice = item.price_usd != null;
+  const qty = item.quantity || 1;
+  const unitKrw = hasPrice ? item.price_usd * rate : 0;
+  const totalKrw = unitKrw * qty;
 
   return (
     <div
@@ -29,11 +53,23 @@ export default function ShopCard({ item, onToggle, onRemove }) {
           />
         </div>
         {item.note && <p className="m-0 mt-1 text-[12px] leading-relaxed text-ink-soft">{item.note}</p>}
-        {item.price_text && <p className="m-0 mt-1 text-[12px] font-bold text-primary-dark">{item.price_text}</p>}
+        {hasPrice ? (
+          <p className="m-0 mt-1 text-[12px] font-bold text-primary-dark">
+            ${item.price_usd} × {qty}개 · 개당 약 {formatKRW(unitKrw)} · 총 합 약 {formatKRW(totalKrw)}
+          </p>
+        ) : (
+          item.price_text && <p className="m-0 mt-1 text-[12px] font-bold text-primary-dark">{item.price_text}</p>
+        )}
+        {item.store && <p className="m-0 mt-0.5 text-[11.5px] text-muted">📍 {item.store}</p>}
       </label>
-      <button onClick={() => onRemove(item.id)} className="shrink-0 self-start px-1 text-[13px] text-muted" aria-label="삭제">
-        ✕
-      </button>
+      <div className="flex shrink-0 flex-col items-end gap-1 self-start">
+        <button onClick={() => setEditing(true)} className="px-1 text-[13px] text-muted" aria-label="수정">
+          ✏️
+        </button>
+        <button onClick={() => onRemove(item.id)} className="px-1 text-[13px] text-muted" aria-label="삭제">
+          ✕
+        </button>
+      </div>
     </div>
   );
 }

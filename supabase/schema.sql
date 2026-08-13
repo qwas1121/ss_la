@@ -29,12 +29,26 @@ create table if not exists shopping_items (
   list text not null default 'wish', -- 'gift' | 'wish' (자유 텍스트)
   title text not null,
   note text not null default '',
-  price_text text not null default '',
+  price_text text not null default '', -- 예전 자유 입력 가격 (레거시, 신규 아이템은 아래 구조화된 필드 사용)
+  price_usd numeric,
+  quantity int not null default 1,
+  store text not null default '',
   image_url text,
   checked boolean not null default false,
   sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
+alter table shopping_items add column if not exists price_usd numeric;
+alter table shopping_items add column if not exists quantity int not null default 1;
+alter table shopping_items add column if not exists store text not null default '';
+
+-- ============ 앱 설정 (환율 등 키-값) ============
+create table if not exists app_settings (
+  key text primary key,
+  value text not null default '',
+  updated_at timestamptz not null default now()
+);
+insert into app_settings (key, value) values ('exchange_rate', '1417') on conflict (key) do nothing;
 
 -- ============ 일정 (관리자만 쓰기) ============
 create table if not exists schedule_days (
@@ -71,6 +85,7 @@ alter table outfit_items enable row level security;
 alter table shopping_items enable row level security;
 alter table schedule_days enable row level security;
 alter table schedule_items enable row level security;
+alter table app_settings enable row level security;
 
 -- 관리자(admin@la-trip.local) 계정인지 확인하는 헬퍼
 create or replace function is_admin() returns boolean as $$
@@ -86,6 +101,9 @@ create policy "auth rw outfit_items" on outfit_items for all using (auth.role() 
 
 drop policy if exists "public rw shopping_items" on shopping_items;
 create policy "auth rw shopping_items" on shopping_items for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+drop policy if exists "auth rw app_settings" on app_settings;
+create policy "auth rw app_settings" on app_settings for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 -- 일정: 읽기는 로그인한 사람 누구나, 쓰기(추가/수정/삭제)는 관리자 계정만
 drop policy if exists "public read schedule_days" on schedule_days;

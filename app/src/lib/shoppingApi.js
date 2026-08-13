@@ -17,10 +17,21 @@ export async function uploadShoppingPhoto(file) {
   return data.publicUrl;
 }
 
-export async function addShoppingItem({ list, title, note, priceText, imageUrl, sortOrder }) {
+export async function addShoppingItem({ list, title, note, priceUsd, quantity, store, imageUrl, sortOrder }) {
   const { data, error } = await supabase
     .from("shopping_items")
-    .insert({ list, title, note, price_text: priceText, image_url: imageUrl, sort_order: sortOrder })
+    .insert({ list, title, note, price_usd: priceUsd, quantity, store, image_url: imageUrl, sort_order: sortOrder })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateShoppingItem(id, { title, note, priceUsd, quantity, store, imageUrl }) {
+  const { data, error } = await supabase
+    .from("shopping_items")
+    .update({ title, note, price_usd: priceUsd, quantity, store, image_url: imageUrl })
+    .eq("id", id)
     .select()
     .single();
   if (error) throw error;
@@ -34,5 +45,18 @@ export async function toggleShoppingItem(id, checked) {
 
 export async function removeShoppingItem(id) {
   const { error } = await supabase.from("shopping_items").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function getExchangeRate() {
+  const { data, error } = await supabase.from("app_settings").select("value").eq("key", "exchange_rate").maybeSingle();
+  if (error) throw error;
+  return data ? Number(data.value) : null;
+}
+
+export async function setExchangeRate(value) {
+  const { error } = await supabase
+    .from("app_settings")
+    .upsert({ key: "exchange_rate", value: String(value), updated_at: new Date().toISOString() }, { onConflict: "key" });
   if (error) throw error;
 }

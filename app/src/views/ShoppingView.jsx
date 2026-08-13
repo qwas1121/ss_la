@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
-import { listShoppingItems, addShoppingItem, toggleShoppingItem, removeShoppingItem } from "../lib/shoppingApi";
+import { listShoppingItems, addShoppingItem, toggleShoppingItem, removeShoppingItem, updateShoppingItem } from "../lib/shoppingApi";
+import { useExchangeRate } from "../hooks/useExchangeRate";
 import ShopCard from "../components/ShopCard";
 import ShoppingItemForm from "../components/ShoppingItemForm";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
@@ -8,6 +9,7 @@ import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
 export default function ShoppingView() {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  const { rate, setRate } = useExchangeRate();
 
   const reload = useCallback(() => {
     if (!isSupabaseConfigured) return;
@@ -25,6 +27,11 @@ export default function ShoppingView() {
     const sameList = items.filter((it) => it.list === payload.list);
     const row = await addShoppingItem({ ...payload, sortOrder: sameList.length });
     setItems((prev) => [...prev, row]);
+  };
+
+  const handleEdit = async (id, payload) => {
+    const row = await updateShoppingItem(id, payload);
+    setItems((prev) => prev.map((it) => (it.id === id ? row : it)));
   };
 
   const handleToggle = async (id) => {
@@ -48,24 +55,38 @@ export default function ShoppingView() {
     );
   }
 
-  const gifts = items.filter((it) => it.list === "gift");
-  const wishes = items.filter((it) => it.list === "wish");
+  const essentials = items.filter((it) => it.list === "gift");
+  const clothing = items.filter((it) => it.list === "wish");
 
   return (
     <div className="px-4 pb-2 pt-4">
-      <div className="font-display mb-2 text-[13px] font-bold text-ink">🎁 회사·가족 선물</div>
-      <ShoppingItemForm list="gift" onAdd={handleAdd} />
-      {gifts.map((item) => (
-        <ShopCard key={item.id} item={item} onToggle={handleToggle} onRemove={handleRemove} />
+      <div className="notch-lg mb-3 flex items-center gap-2 border-2 border-ink bg-surface-soft px-3.5 py-2.5">
+        <span className="font-display shrink-0 text-[12.5px] font-bold text-ink">💱 환율</span>
+        <span className="text-[12px] text-muted">1 USD =</span>
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          value={rate}
+          onChange={(e) => setRate(Number(e.target.value) || 0)}
+          className="notch-sm w-20 border-2 border-ink bg-white px-2 py-1 text-right font-sans text-[13px]"
+        />
+        <span className="text-[12px] text-muted">원</span>
+      </div>
+
+      <div className="font-display mb-2 text-[13px] font-bold text-ink">✅ 필수</div>
+      <ShoppingItemForm list="gift" rate={rate} onSubmit={handleAdd} />
+      {essentials.map((item) => (
+        <ShopCard key={item.id} item={item} rate={rate} onToggle={handleToggle} onRemove={handleRemove} onEdit={handleEdit} />
       ))}
 
-      <div className="font-display mb-2 mt-2 text-[13px] font-bold text-ink">🛍️ 내가 사고 싶은 것</div>
-      <ShoppingItemForm list="wish" onAdd={handleAdd} />
-      {wishes.map((item) => (
-        <ShopCard key={item.id} item={item} onToggle={handleToggle} onRemove={handleRemove} />
+      <div className="font-display mb-2 mt-2 text-[13px] font-bold text-ink">👗 의류</div>
+      <ShoppingItemForm list="wish" rate={rate} onSubmit={handleAdd} />
+      {clothing.map((item) => (
+        <ShopCard key={item.id} item={item} rate={rate} onToggle={handleToggle} onRemove={handleRemove} onEdit={handleEdit} />
       ))}
 
-      {loaded && gifts.length === 0 && wishes.length === 0 && (
+      {loaded && essentials.length === 0 && clothing.length === 0 && (
         <p className="mt-2 text-center text-[12px] text-muted">아직 담은 아이템이 없어요.</p>
       )}
     </div>
