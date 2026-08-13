@@ -1,38 +1,39 @@
-import { krw } from "../data/trip";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-
-export default function ShopCard({ id, item }) {
-  const [checked, setChecked] = useLocalStorage(`shop_${id}`, "0");
-  const isChecked = checked === "1";
+export default function ShopCard({ item, onToggle, onRemove }) {
+  const isChecked = item.checked;
 
   return (
-    <label
-      className={`mb-2.5 flex cursor-pointer items-start gap-3 rounded-2xl border border-black/[0.06] bg-surface p-3.5 shadow-card transition-opacity ${
+    <div
+      className={`notch-lg mb-2.5 flex items-start gap-2.5 border-2 border-ink bg-surface p-3.5 transition-opacity ${
         isChecked ? "opacity-50" : ""
       }`}
     >
-      <div
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-display text-[15px] font-bold tracking-tight text-white"
-        style={{ background: item.color }}
-      >
-        {item.init}
-      </div>
-      <div className="min-w-0 flex-1">
+      {item.image_url ? (
+        <img
+          src={item.image_url}
+          alt={item.title}
+          className="notch-sm h-14 w-14 shrink-0 border-2 border-ink object-cover"
+        />
+      ) : (
+        <div className="notch-sm flex h-14 w-14 shrink-0 items-center justify-center border-2 border-ink bg-surface-soft text-[22px]">
+          🛍️
+        </div>
+      )}
+      <label className="min-w-0 flex-1 cursor-pointer">
         <div className="flex items-start justify-between gap-2">
-          <h4 className={`m-0 text-[14px] font-bold ${isChecked ? "line-through" : ""}`}>{item.name}</h4>
+          <h4 className={`m-0 text-[13px] font-bold text-ink ${isChecked ? "line-through" : ""}`}>{item.title}</h4>
           <input
             type="checkbox"
             checked={isChecked}
-            onChange={(e) => setChecked(e.target.checked ? "1" : "0")}
-            className="mt-1 h-4 w-4 shrink-0 accent-primary"
+            onChange={() => onToggle(item.id)}
+            className="mt-0.5 h-4 w-4 shrink-0 border-2 border-ink accent-primary"
           />
         </div>
-        <p className="m-0 text-[12.5px] leading-relaxed text-ink-soft">{item.note}</p>
-        <p className="m-0 mt-1 text-[12px] font-bold text-primary">
-          {item.usdEach} <span className="font-medium text-ink-soft">(총 {krw(item.usd)})</span>
-        </p>
-        <p className="m-0 mt-0.5 text-[11.5px] text-muted">{item.where}</p>
-      </div>
-    </label>
+        {item.note && <p className="m-0 mt-1 text-[12px] leading-relaxed text-ink-soft">{item.note}</p>}
+        {item.price_text && <p className="m-0 mt-1 text-[12px] font-bold text-primary-dark">{item.price_text}</p>}
+      </label>
+      <button onClick={() => onRemove(item.id)} className="shrink-0 self-start px-1 text-[13px] text-muted" aria-label="삭제">
+        ✕
+      </button>
+    </div>
   );
 }
