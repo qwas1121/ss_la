@@ -9,7 +9,7 @@ import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
 export default function ShoppingView() {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const { rate, setRate } = useExchangeRate();
+  const { rate } = useExchangeRate();
 
   const reload = useCallback(() => {
     if (!isSupabaseConfigured) return;
@@ -62,16 +62,8 @@ export default function ShoppingView() {
     <div className="px-4 pb-2 pt-4">
       <div className="notch-lg mb-3 flex items-center gap-2 border-2 border-ink bg-surface-soft px-3.5 py-2.5">
         <span className="font-display shrink-0 text-[12.5px] font-bold text-ink">💱 환율</span>
-        <span className="text-[12px] text-muted">1 USD =</span>
-        <input
-          type="number"
-          inputMode="decimal"
-          min="0"
-          value={rate}
-          onChange={(e) => setRate(Number(e.target.value) || 0)}
-          className="notch-sm w-20 border-2 border-ink bg-white px-2 py-1 text-right font-sans text-[13px]"
-        />
-        <span className="text-[12px] text-muted">원</span>
+        <span className="text-[13px] text-ink">1 USD = {rate.toLocaleString("ko-KR")}원</span>
+        <span className="ml-auto text-[11px] text-muted">정보 탭에서 수정</span>
       </div>
 
       <div className="font-display mb-2 text-[13px] font-bold text-ink">✅ 필수</div>

@@ -5,7 +5,8 @@
       "Bash(git check-ignore *)",
       "Bash(gh repo *)",
       "Bash(taskkill //PID 23840 //F)",
-      "Bash(taskkill //PID 19908 //F)"
+      "Bash(taskkill //PID 19908 //F)",
+      "Bash(taskkill //PID 23764 //F)"
     ],
     "additionalDirectories": [
       "c:\\Users\\다인리더스\\Downloads\\la\\supabase"

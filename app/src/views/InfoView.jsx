@@ -1,5 +1,6 @@
-import { RATE, CONNECTIVITY_NOTE, EMERGENCY_CONTACTS, EMERGENCY_NOTE, PACKING_LIST } from "../data/trip";
+import { CONNECTIVITY_NOTE, EMERGENCY_CONTACTS, EMERGENCY_NOTE, PACKING_LIST } from "../data/trip";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useExchangeRate } from "../hooks/useExchangeRate";
 import LogoutButton from "../components/LogoutButton";
 
 function PackingItem({ label }) {
@@ -23,13 +24,25 @@ function PackingItem({ label }) {
 }
 
 export default function InfoView() {
+  const { rate, setRate } = useExchangeRate();
+
   return (
     <div className="flex flex-col gap-4 px-4 pb-2 pt-4">
       <div>
         <div className="font-display mb-1.5 text-[13px] font-bold text-ink">💱 환율</div>
-        <div className="notch-lg border-2 border-ink bg-surface px-3.5 py-3 text-[13px] text-ink">
-          1 USD ≈ {RATE.toLocaleString("ko-KR")}원 (여행 전 재확인 필요)
+        <div className="notch-lg flex items-center gap-2 border-2 border-ink bg-surface px-3.5 py-3 text-[13px] text-ink">
+          <span>1 USD =</span>
+          <input
+            type="number"
+            inputMode="decimal"
+            min="0"
+            value={rate}
+            onChange={(e) => setRate(Number(e.target.value) || 0)}
+            className="notch-sm w-20 border-2 border-ink bg-white px-2 py-1 text-right font-sans text-[13px]"
+          />
+          <span>원</span>
         </div>
+        <p className="mt-1 text-[11px] text-muted">여행 전 실제 환율로 업데이트해두면 쇼핑 탭 가격 계산에도 그대로 반영돼요.</p>
       </div>
 
       <div>

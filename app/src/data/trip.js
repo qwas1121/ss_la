@@ -38,8 +38,6 @@ export const RES_PENDING = [
   { label: "Flagstaff 저녁", when: "Day 5 · 9.23", detail: "Bigfoot BBQ / Atria / Fat Olives 중 미정" },
 ];
 
-export const RATE = 1417; // 1 USD 기준 원화, 환율 바뀌면 이 숫자만 수정
-
 export const BUDGET = [
   { label: "전체 식비 (8일치, 2인)", amount: "약 137만원", value: 1370000, paid: false },
   { label: "법인장님 저녁 (4명분)", amount: "약 12만원", value: 120000, paid: false },
