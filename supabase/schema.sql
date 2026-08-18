@@ -76,8 +76,10 @@ create table if not exists schedule_items (
   place text,
   lat double precision,
   lng double precision,
+  move text, -- 이동수단: 도보/지하철/버스/트램/기차/택시/항공/자전거 (선택)
   sort_order int not null default 0
 );
+alter table schedule_items add column if not exists move text;
 
 -- ============ RLS ============
 alter table item_state enable row level security;

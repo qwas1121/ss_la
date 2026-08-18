@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { useAuthRole } from "../lib/auth";
 import { listDays, updateDay, addScheduleItem, updateScheduleItem, deleteScheduleItem } from "../lib/scheduleApi";
+import { geocodePlace } from "../lib/geocode";
+import { dayDateISO } from "../lib/format";
+import { TRIP_META } from "../data/trip";
 import DayTabs from "../components/DayTabs";
 import ItemCard from "../components/ItemCard";
 import ResCard from "../components/ResCard";
@@ -10,6 +13,8 @@ import HotelCard from "../components/HotelCard";
 import AdminItemForm from "../components/AdminItemForm";
 import AdminDayForm from "../components/AdminDayForm";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
+
+const TRIP_YEAR = TRIP_META.startDate.slice(0, 4);
 
 const OverviewMap = lazy(() => import("../components/OverviewMap"));
 
@@ -23,7 +28,9 @@ export default function ScheduleView() {
   const [editingDay, setEditingDay] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null); // null | "new" | item id
   const [saving, setSaving] = useState(false);
+  const [highlightId, setHighlightId] = useState(null);
   const touch = useRef({ x: 0, y: 0 });
+  const itemRefs = useRef({});
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -34,6 +41,14 @@ export default function ScheduleView() {
       })
       .catch((err) => console.error("listDays failed", err));
   }, []);
+
+  useEffect(() => {
+    if (!highlightId || mode !== "list") return;
+    const el = itemRefs.current[highlightId];
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timer = setTimeout(() => setHighlightId(null), 1600);
+    return () => clearTimeout(timer);
+  }, [highlightId, mode]);
 
   if (!isSupabaseConfigured) {
     return (
@@ -106,6 +121,10 @@ export default function ScheduleView() {
   const saveItem = async (itemId, values) => {
     setSaving(true);
     try {
+      if (values.place) {
+        const coords = await geocodePlace(values.place);
+        if (coords) values = { ...values, ...coords };
+      }
       if (itemId === "new") {
         const row = await addScheduleItem(day.id, values, day.items.length);
         patchDayLocal(day.id, { items: [...day.items, { ...values, id: row.id }] });
@@ -120,6 +139,11 @@ export default function ScheduleView() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const selectItemFromMap = (itemId) => {
+    setMode("list");
+    setHighlightId(itemId);
   };
 
   const removeItem = async (itemId) => {
@@ -195,7 +219,7 @@ export default function ScheduleView() {
                   </div>
                 }
               >
-                <OverviewMap day={day} />
+                <OverviewMap day={day} onSelectItem={selectItemFromMap} />
               </Suspense>
             ) : (
               <>
@@ -229,8 +253,14 @@ export default function ScheduleView() {
                           onSave={(values) => saveItem(item.id, values)}
                         />
                       ) : (
-                        <div key={item.id ?? idx} className="relative">
-                          <ItemCard dayKey={day.key} index={idx} item={item} />
+                        <div
+                          key={item.id ?? idx}
+                          ref={(el) => (itemRefs.current[item.id] = el)}
+                          className={`relative rounded-2xl transition-shadow ${
+                            highlightId === item.id ? "ring-4 ring-gold" : ""
+                          }`}
+                        >
+                          <ItemCard dayKey={day.key} index={idx} item={item} dateISO={dayDateISO(day.date, TRIP_YEAR)} />
                           {isAdmin && (
                             <div className="absolute right-3 top-3 flex gap-1">
                               <button

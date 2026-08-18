@@ -26,6 +26,7 @@ function toDay(row, items) {
         place: it.place,
         lat: it.lat,
         lng: it.lng,
+        move: it.move,
       })),
   };
 }

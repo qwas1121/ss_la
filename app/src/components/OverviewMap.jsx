@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, Tooltip, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { fetchDayDoneCount } from "../lib/itemStateApi";
+import { fetchDayDoneMap } from "../lib/itemStateApi";
 
-const ROUTE_COLOR = "oklch(58% 0.17 350)"; // primary-dark
+const ROUTE_COLOR = "oklch(58% 0.17 350)"; // primary-dark, 지나온 경로
+const REMAIN_COLOR = "oklch(60% 0.02 340)"; // pending, 남은 경로
 const START_COLOR = "oklch(64% 0.11 150)"; // good
 const END_COLOR = "oklch(70% 0.16 350)"; // primary
 const MID_COLOR = "oklch(45% 0.12 300)"; // secondary
@@ -32,22 +33,35 @@ function FitBounds({ points }) {
   return null;
 }
 
-export default function OverviewMap({ day }) {
+function nearestIndex(line, point) {
+  let best = 0;
+  let bestDist = Infinity;
+  line.forEach(([lat, lng], i) => {
+    const d = (lat - point[0]) ** 2 + (lng - point[1]) ** 2;
+    if (d < bestDist) {
+      bestDist = d;
+      best = i;
+    }
+  });
+  return best;
+}
+
+export default function OverviewMap({ day, onSelectItem }) {
   const stops = useMemo(
     () => day.items.map((it, idx) => ({ ...it, idx })).filter((it) => it.lat != null && it.lng != null),
     [day]
   );
   const points = useMemo(() => stops.map((s) => [s.lat, s.lng]), [stops]);
   const [routeLine, setRouteLine] = useState(null);
-  const [doneCount, setDoneCount] = useState(0);
+  const [doneMap, setDoneMap] = useState({});
 
   useEffect(() => {
     let cancelled = false;
-    fetchDayDoneCount(day.key)
-      .then((count) => {
-        if (!cancelled) setDoneCount(count);
+    fetchDayDoneMap(day.key)
+      .then((map) => {
+        if (!cancelled) setDoneMap(map);
       })
-      .catch((err) => console.error("fetchDayDoneCount failed", err));
+      .catch((err) => console.error("fetchDayDoneMap failed", err));
     return () => {
       cancelled = true;
     };
@@ -71,6 +85,22 @@ export default function OverviewMap({ day }) {
       cancelled = true;
     };
   }, [stops]);
+
+  const doneCount = stops.filter((s) => doneMap[s.idx]).length;
+
+  // 마지막으로 완료 표시된 스탑까지를 "지나온 경로"(진한 실선), 나머지를 "남은 경로"(회색 점선)로 분리
+  const lastDoneStopIndex = (() => {
+    let last = -1;
+    stops.forEach((s, i) => {
+      if (doneMap[s.idx]) last = i;
+    });
+    return last;
+  })();
+
+  const line = routeLine ?? points;
+  const splitAt = lastDoneStopIndex < 0 ? 0 : nearestIndex(line, points[lastDoneStopIndex]) + 1;
+  const traveledLine = line.slice(0, splitAt);
+  const remainingLine = line.slice(Math.max(0, splitAt - 1));
 
   if (stops.length === 0) {
     return (
@@ -100,17 +130,24 @@ export default function OverviewMap({ day }) {
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           />
           <FitBounds points={points} />
-          <Polyline
-            positions={routeLine ?? points}
-            pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85, dashArray: routeLine ? undefined : "2 8" }}
-          />
+          {traveledLine.length > 1 && (
+            <Polyline positions={traveledLine} pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.9 }} />
+          )}
+          {remainingLine.length > 1 && (
+            <Polyline
+              positions={remainingLine}
+              pathOptions={{ color: REMAIN_COLOR, weight: 3, opacity: 0.75, dashArray: routeLine ? "1 9" : "2 8" }}
+            />
+          )}
           {stops.map((s, i) => {
             const variant = i === 0 ? "start" : i === stops.length - 1 ? "end" : "mid";
             return (
-              <Marker key={s.idx} position={[s.lat, s.lng]} icon={numberIcon(i + 1, variant)}>
-                <Popup>
-                  {s.t} · {s.icon} {s.title}
-                </Popup>
+              <Marker
+                key={s.id ?? s.idx}
+                position={[s.lat, s.lng]}
+                icon={numberIcon(i + 1, variant)}
+                eventHandlers={onSelectItem ? { click: () => onSelectItem(s.id) } : undefined}
+              >
                 {(i === 0 || i === stops.length - 1) && (
                   <Tooltip permanent direction="top" offset={[0, -16]}>
                     {s.t} {s.title}
@@ -121,6 +158,7 @@ export default function OverviewMap({ day }) {
           })}
         </MapContainer>
       </div>
+      <p className="mt-1.5 text-center text-[10.5px] text-muted">📍 핀을 탭하면 해당 일정으로 이동해요</p>
     </div>
   );
 }

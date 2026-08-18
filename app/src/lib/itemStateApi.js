@@ -21,6 +21,16 @@ export async function fetchDayDoneCount(dayKey) {
   return count ?? 0;
 }
 
+// { [item_index]: true } for done items on this day — used to split the overview map's
+// route into a "traveled" vs "remaining" style.
+export async function fetchDayDoneMap(dayKey) {
+  const { data, error } = await supabase.from("item_state").select("item_index, done").eq("day_key", dayKey).eq("done", true);
+  if (error) throw error;
+  const map = {};
+  for (const row of data ?? []) map[row.item_index] = true;
+  return map;
+}
+
 export async function upsertItemState(dayKey, itemIndex, patch) {
   const { error } = await supabase
     .from("item_state")

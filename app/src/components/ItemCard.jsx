@@ -2,8 +2,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { mapsUrl, mapsEmbedUrl } from "../data/trip";
 import { useItemState } from "../hooks/useItemState";
+import { downloadICS } from "../lib/ics";
 
-export default function ItemCard({ dayKey, index, item }) {
+const MOVE_ICON = { 도보: "🚶", 지하철: "🚇", 버스: "🚌", 트램: "🚊", 기차: "🚆", 택시: "🚕", 항공: "✈️", 자전거: "🚲" };
+
+export default function ItemCard({ dayKey, index, item, dateISO }) {
   const { done, note, setDone, setNote } = useItemState(dayKey, index);
   const [showMap, setShowMap] = useState(false);
   const [showNote, setShowNote] = useState(false);
@@ -16,6 +19,11 @@ export default function ItemCard({ dayKey, index, item }) {
         <p className={`m-0 flex-1 text-[13.5px] font-bold leading-snug text-ink ${done ? "line-through" : ""}`}>
           {item.icon} {item.title}
         </p>
+        {item.move && (
+          <span className="notch-sm shrink-0 self-start border-2 border-ink bg-info-soft px-1.5 py-0.5 text-[10.5px] font-bold text-ink">
+            {MOVE_ICON[item.move] ?? "🚗"} {item.move}
+          </span>
+        )}
       </div>
       {item.note && <p className="m-0 mt-1 text-[12.5px] leading-relaxed text-ink-soft">{item.note}</p>}
       {item.tip && (
@@ -55,6 +63,14 @@ export default function ItemCard({ dayKey, index, item }) {
         >
           ✏️ 메모
         </button>
+        {dateISO && (
+          <button
+            onClick={() => downloadICS(item, dateISO)}
+            className="notch-sm inline-flex items-center gap-1 border-2 border-ink bg-white px-2.5 py-1 text-[11.5px] font-bold text-ink"
+          >
+            📅 캘린더
+          </button>
+        )}
       </div>
 
       <AnimatePresence initial={false}>
