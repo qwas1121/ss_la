@@ -8,3 +8,9 @@ export function dayDateISO(dateStr, year) {
   if (!m) return null;
   return `${year}-${String(m[1]).padStart(2, "0")}-${String(m[2]).padStart(2, "0")}`;
 }
+
+// 오늘 날짜를 로컬 기준 "YYYY-MM-DD"로
+export function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}

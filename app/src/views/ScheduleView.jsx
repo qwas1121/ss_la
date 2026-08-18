@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { useAuthRole } from "../lib/auth";
 import { listDays, updateDay, addScheduleItem, updateScheduleItem, deleteScheduleItem } from "../lib/scheduleApi";
 import { geocodePlace } from "../lib/geocode";
-import { dayDateISO } from "../lib/format";
+import { dayDateISO, todayISO } from "../lib/format";
 import { TRIP_META } from "../data/trip";
 import DayTabs from "../components/DayTabs";
 import ItemCard from "../components/ItemCard";
@@ -38,6 +38,9 @@ export default function ScheduleView() {
       .then((data) => {
         setDays(data);
         setLoaded(true);
+        const today = todayISO();
+        const todayIndex = data.findIndex((d) => dayDateISO(d.date, TRIP_YEAR) === today);
+        if (todayIndex >= 0) setIndex(todayIndex);
       })
       .catch((err) => console.error("listDays failed", err));
   }, []);
