@@ -195,8 +195,15 @@ export default function ScheduleView() {
                   )}
                 </div>
                 <p className="m-0 text-[13px] leading-relaxed text-ink-soft">{day.concept}</p>
-                <div className="notch-sm font-display mt-2.5 inline-block border-2 border-ink bg-gold-soft px-2.5 py-1.5 text-[12px] font-bold text-ink">
-                  💰 {day.budget}
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  <div className="notch-sm font-display inline-block border-2 border-ink bg-gold-soft px-2.5 py-1.5 text-[12px] font-bold text-ink">
+                    💰 {day.budget}
+                  </div>
+                  {day.weather && (
+                    <div className="notch-sm font-display inline-block border-2 border-ink bg-info-soft px-2.5 py-1.5 text-[12px] font-bold text-ink">
+                      🌤️ {day.weather}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
