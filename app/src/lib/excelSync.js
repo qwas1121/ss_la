@@ -74,39 +74,44 @@ export async function applyItemsExcel(rows) {
       place,
     };
 
-    if (id) {
-      const existing = itemById.get(id);
-      if (!existing) {
-        result.skipped.push(`id(${id})를 가진 기존 일정을 찾을 수 없어요 (제목: ${title})`);
-        continue;
-      }
-      if (isValidIcon(rawIcon)) {
-        values.icon = rawIcon;
-      } else if (rawIcon && rawIcon !== existing.icon) {
-        result.skipped.push(`"${title}"의 아이콘 값이 깨진 것 같아 기존 아이콘을 유지했어요`);
-      }
-      if (place && place !== existing.place) {
-        const coords = await geocodePlace(place);
-        if (coords) Object.assign(values, coords);
-      }
-      await updateScheduleItem(id, values);
-      result.updated++;
-    } else {
-      values.icon = isValidIcon(rawIcon) ? rawIcon : "📌";
-      if (place) {
-        const coords = await geocodePlace(place);
-        if (coords) Object.assign(values, coords);
-      }
-      const currentItems = dayByTab.get(day.tab).items;
-      const insertAt = findTimeInsertIndex(currentItems, timeKey(values.t));
-      const newRow = await addScheduleItem(day.id, values, insertAt);
-      currentItems.splice(insertAt, 0, { ...values, id: newRow.id });
+    try {
+      if (id) {
+        const existing = itemById.get(id);
+        if (!existing) {
+          result.skipped.push(`id(${id})를 가진 기존 일정을 찾을 수 없어요 (제목: ${title})`);
+          continue;
+        }
+        if (isValidIcon(rawIcon)) {
+          values.icon = rawIcon;
+        } else if (rawIcon && rawIcon !== existing.icon) {
+          result.skipped.push(`"${title}"의 아이콘 값이 깨진 것 같아 기존 아이콘을 유지했어요`);
+        }
+        if (place && place !== existing.place) {
+          const coords = await geocodePlace(place);
+          if (coords) Object.assign(values, coords);
+        }
+        await updateScheduleItem(id, values);
+        result.updated++;
+      } else {
+        values.icon = isValidIcon(rawIcon) ? rawIcon : "📌";
+        if (place) {
+          const coords = await geocodePlace(place);
+          if (coords) Object.assign(values, coords);
+        }
+        const currentItems = dayByTab.get(day.tab).items;
+        const insertAt = findTimeInsertIndex(currentItems, timeKey(values.t));
+        const newRow = await addScheduleItem(day.id, values, insertAt);
+        currentItems.splice(insertAt, 0, { ...values, id: newRow.id });
 
-      // 새로 끼워넣은 항목 뒤로 밀린 기존 항목들의 sort_order도 DB에 반영
-      const shifted = currentItems.slice(insertAt + 1);
-      await Promise.all(shifted.map((it, i) => updateScheduleItem(it.id, { sort_order: insertAt + 1 + i })));
+        // 새로 끼워넣은 항목 뒤로 밀린 기존 항목들의 sort_order도 DB에 반영
+        const shifted = currentItems.slice(insertAt + 1);
+        await Promise.all(shifted.map((it, i) => updateScheduleItem(it.id, { sort_order: insertAt + 1 + i })));
 
-      result.added++;
+        result.added++;
+      }
+    } catch (err) {
+      console.error("엑셀 행 반영 실패", row, err);
+      result.skipped.push(`"${title}" 반영 실패: ${err.message ?? err}`);
     }
   }
 

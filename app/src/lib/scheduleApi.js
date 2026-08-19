@@ -48,8 +48,10 @@ export async function listDays() {
 }
 
 export async function updateDay(dayId, patch) {
-  const { error } = await supabase.from("schedule_days").update(patch).eq("id", dayId);
+  const { data, error } = await supabase.from("schedule_days").update(patch).eq("id", dayId).select();
   if (error) throw error;
+  if (!data || data.length === 0) throw new Error(`schedule_days id=${dayId}를 찾지 못해 수정하지 못했어요.`);
+  return data[0];
 }
 
 export async function addScheduleItem(dayId, item, sortOrder) {
@@ -63,8 +65,11 @@ export async function addScheduleItem(dayId, item, sortOrder) {
 }
 
 export async function updateScheduleItem(itemId, patch) {
-  const { error } = await supabase.from("schedule_items").update(patch).eq("id", itemId);
+  const { data, error } = await supabase.from("schedule_items").update(patch).eq("id", itemId).select();
   if (error) throw error;
+  // Postgrest는 id가 안 맞아도 에러 없이 "0건 업데이트"로 조용히 넘어가므로 직접 검증
+  if (!data || data.length === 0) throw new Error(`schedule_items id=${itemId}를 찾지 못해 수정하지 못했어요.`);
+  return data[0];
 }
 
 export async function deleteScheduleItem(itemId) {
