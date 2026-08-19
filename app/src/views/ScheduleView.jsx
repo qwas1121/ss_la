@@ -29,7 +29,6 @@ export default function ScheduleView() {
   const [editingItemId, setEditingItemId] = useState(null); // null | "new" | item id
   const [saving, setSaving] = useState(false);
   const [highlightId, setHighlightId] = useState(null);
-  const touch = useRef({ x: 0, y: 0 });
   const itemRefs = useRef({});
 
   useEffect(() => {
@@ -90,17 +89,6 @@ export default function ScheduleView() {
     setIndex(nextIndex);
     setEditingDay(false);
     setEditingItemId(null);
-  };
-
-  const onTouchStart = (e) => {
-    touch.current = { x: e.changedTouches[0].screenX, y: e.changedTouches[0].screenY };
-  };
-  const onTouchEnd = (e) => {
-    const dx = e.changedTouches[0].screenX - touch.current.x;
-    const dy = e.changedTouches[0].screenY - touch.current.y;
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
-    if (dx < 0 && index < days.length - 1) goTo(KEYS[index + 1]);
-    if (dx > 0 && index > 0) goTo(KEYS[index - 1]);
   };
 
   const patchDayLocal = (dayId, patch) => {
@@ -182,9 +170,8 @@ export default function ScheduleView() {
       </div>
 
       <DayTabs days={days} activeKey={day.key} onSelect={goTo} />
-      <p className="font-display mb-2 mt-1 text-center text-[11px] text-muted">👉 좌우로 스와이프해서 날짜 이동</p>
 
-      <div className="overflow-hidden px-4 pb-2" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className="overflow-hidden px-4 pt-2 pb-2">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={mode + day.key}
