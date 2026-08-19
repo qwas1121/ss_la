@@ -90,12 +90,25 @@ export default function ExcelSyncPanel() {
       {result && (
         <div className="notch-lg mt-2 border-2 border-ink bg-good-soft p-3 text-[12px] text-good-text">
           <p className="m-0 font-bold">✅ 수정 {result.updated}개 · 추가 {result.added}개</p>
+          {result.healed?.length > 0 && (
+            <>
+              <p className="m-0 mt-1.5 text-[11px] font-bold text-ink">💡 파일의 id가 오래돼서 날짜+제목으로 다시 찾아 반영함 (정상 처리됨):</p>
+              <ul className="m-0 mt-0.5 list-disc pl-4 text-[11px] text-ink-soft">
+                {result.healed.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            </>
+          )}
           {result.skipped.length > 0 && (
-            <ul className="m-0 mt-1.5 list-disc pl-4 text-[11px] text-ink-soft">
-              {result.skipped.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
+            <>
+              <p className="m-0 mt-1.5 text-[11px] font-bold text-primary-dark">⚠️ 반영 못한 행:</p>
+              <ul className="m-0 mt-0.5 list-disc pl-4 text-[11px] text-ink-soft">
+                {result.skipped.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
       )}

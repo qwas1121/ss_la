@@ -46,8 +46,10 @@ export async function applyItemsExcel(rows) {
   const days = await listDays();
   const dayByTab = new Map(days.map((d) => [d.tab, d]));
   const itemById = new Map(days.flatMap((d) => d.items.map((it) => [it.id, { ...it, dayKey: d.key }])));
+  // id가 안 맞을 때(파일이 최신 상태가 아닐 때) 같은 날짜+제목으로 한 번 더 찾아봄
+  const itemByDayAndTitle = new Map(days.flatMap((d) => d.items.map((it) => [`${d.tab}::${it.title}`, it])));
 
-  const result = { updated: 0, added: 0, skipped: [] };
+  const result = { updated: 0, added: 0, healed: [], skipped: [] };
 
   for (const row of rows) {
     const day = dayByTab.get(String(row["Day"] ?? "").trim());
@@ -76,11 +78,23 @@ export async function applyItemsExcel(rows) {
 
     try {
       if (id) {
-        const existing = itemById.get(id);
+        let existing = itemById.get(id);
+        let realId = id;
+        let healedFromStaleId = false;
+
         if (!existing) {
-          result.skipped.push(`id(${id})를 가진 기존 일정을 찾을 수 없어요 (제목: ${title})`);
-          continue;
+          // id가 최신이 아닐 수 있음 — 같은 날짜의 같은 제목으로 한 번 더 시도
+          const fallback = itemByDayAndTitle.get(`${day.tab}::${title}`);
+          if (fallback) {
+            existing = fallback;
+            realId = fallback.id;
+            healedFromStaleId = true;
+          } else {
+            result.skipped.push(`id(${id})를 가진 기존 일정을 찾을 수 없어요 (제목: ${title})`);
+            continue;
+          }
         }
+
         if (isValidIcon(rawIcon)) {
           values.icon = rawIcon;
         } else if (rawIcon && rawIcon !== existing.icon) {
@@ -90,7 +104,8 @@ export async function applyItemsExcel(rows) {
           const coords = await geocodePlace(place);
           if (coords) Object.assign(values, coords);
         }
-        await updateScheduleItem(id, values);
+        await updateScheduleItem(realId, values);
+        if (healedFromStaleId) result.healed.push(`"${title}" (${day.tab})`);
         result.updated++;
       } else {
         values.icon = isValidIcon(rawIcon) ? rawIcon : "📌";
