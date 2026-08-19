@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { CONNECTIVITY_NOTE, EMERGENCY_CONTACTS, EMERGENCY_NOTE, PACKING_LIST } from "../data/trip";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useExchangeRate } from "../hooks/useExchangeRate";
+import { exportScheduleAsText, exportScheduleAsCSV } from "../lib/exportSchedule";
 import LogoutButton from "../components/LogoutButton";
 
 function PackingItem({ label }) {
@@ -25,6 +27,19 @@ function PackingItem({ label }) {
 
 export default function InfoView() {
   const { rate, setRate } = useExchangeRate();
+  const [exporting, setExporting] = useState(null); // null | "text" | "csv"
+
+  const runExport = async (kind, fn) => {
+    setExporting(kind);
+    try {
+      await fn();
+    } catch (err) {
+      console.error("export failed", err);
+      alert("내보내기에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setExporting(null);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4 px-4 pb-2 pt-4">
@@ -71,6 +86,27 @@ export default function InfoView() {
         {PACKING_LIST.map((p) => (
           <PackingItem key={p} label={p} />
         ))}
+      </div>
+
+      <div>
+        <div className="font-display mb-1.5 text-[13px] font-bold text-ink">📤 일정 내보내기</div>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => runExport("text", exportScheduleAsText)}
+            disabled={exporting !== null}
+            className="notch-lg flex-1 border-2 border-ink bg-surface px-3.5 py-2.5 text-[12.5px] font-bold text-ink disabled:opacity-50"
+          >
+            {exporting === "text" ? "내보내는 중..." : "📄 텍스트로"}
+          </button>
+          <button
+            onClick={() => runExport("csv", exportScheduleAsCSV)}
+            disabled={exporting !== null}
+            className="notch-lg flex-1 border-2 border-ink bg-surface px-3.5 py-2.5 text-[12.5px] font-bold text-ink disabled:opacity-50"
+          >
+            {exporting === "csv" ? "내보내는 중..." : "📊 엑셀로"}
+          </button>
+        </div>
+        <p className="mt-1 text-[11px] text-muted">전체 일정(모든 날짜)을 파일로 저장해요. 엑셀 파일은 CSV 형식이라 대부분의 스프레드시트 앱에서 바로 열려요.</p>
       </div>
 
       <LogoutButton />
