@@ -25,7 +25,7 @@ export const DAY_RESERVATIONS = {
 };
 
 export const RES_PAID = [
-  { label: "Universal Express Pass", when: "Day 3 · 9.21", amount: "628,051원", detail: "2명 · 한국 여행사(마이리얼트립) 구매, 바우처 현장교환" },
+  { label: "Universal Express Pass", when: "Day 3 · 9.21", amount: "628,051원", detail: "2명 · 하나투어 구매, 바우처 현장교환, 바우처 현장교환" },
   { label: "Antelope Canyon Tour", when: "Day 5 · 9.23", amount: "$316.54 (약 448,000원)", detail: "12:40~14:00 · Adventurous Antelope Canyon Tours" },
   { label: "Desert Botanical Garden", when: "Day 7 · 9.25", amount: "$39.90 (약 56,500원)", detail: "08:00 입장 · 2명" },
 ];
