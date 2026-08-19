@@ -96,12 +96,15 @@ $$ language sql stable;
 
 -- 메모/코디/쇼핑: 로그인한 사람(관리자 또는 뷰어 계정)이면 누구나 읽고 쓸 수 있음
 drop policy if exists "public rw item_state" on item_state;
+drop policy if exists "auth rw item_state" on item_state;
 create policy "auth rw item_state" on item_state for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 drop policy if exists "public rw outfit_items" on outfit_items;
+drop policy if exists "auth rw outfit_items" on outfit_items;
 create policy "auth rw outfit_items" on outfit_items for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 drop policy if exists "public rw shopping_items" on shopping_items;
+drop policy if exists "auth rw shopping_items" on shopping_items;
 create policy "auth rw shopping_items" on shopping_items for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 drop policy if exists "auth rw app_settings" on app_settings;
