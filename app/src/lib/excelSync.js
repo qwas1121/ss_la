@@ -104,7 +104,20 @@ export async function applyItemsExcel(rows) {
           const coords = await geocodePlace(place);
           if (coords) Object.assign(values, coords);
         }
-        await updateScheduleItem(realId, values);
+
+        // 시간이 바뀌었을 수 있으니, 그 날짜 안에서 새 시간 기준 위치로 다시 정렬
+        const currentItems = dayByTab.get(day.tab).items;
+        const withoutEdited = currentItems.filter((it) => it.id !== realId);
+        const insertAt = findTimeInsertIndex(withoutEdited, timeKey(values.t));
+        withoutEdited.splice(insertAt, 0, { ...existing, ...values, id: realId });
+        dayByTab.get(day.tab).items = withoutEdited;
+
+        await Promise.all(
+          withoutEdited.map((it, i) =>
+            updateScheduleItem(it.id, it.id === realId ? { ...values, sort_order: i } : { sort_order: i })
+          )
+        );
+
         if (healedFromStaleId) result.healed.push(`"${title}" (${day.tab})`);
         result.updated++;
       } else {

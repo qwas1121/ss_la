@@ -129,8 +129,17 @@ export default function ScheduleView() {
 
         patchDayLocal(day.id, { items: newItems });
       } else {
-        await updateScheduleItem(itemId, values);
-        patchDayLocal(day.id, { items: day.items.map((it) => (it.id === itemId ? { ...it, ...values } : it)) });
+        // 시간이 바뀌었을 수 있으니, 현재 위치에서 빼낸 다음 새 시간 기준으로 다시 끼워넣음
+        const withoutEdited = day.items.filter((it) => it.id !== itemId);
+        const insertAt = findTimeInsertIndex(withoutEdited, timeKey(values.t));
+        const newItems = [...withoutEdited];
+        newItems.splice(insertAt, 0, { ...day.items.find((it) => it.id === itemId), ...values, id: itemId });
+
+        await Promise.all(
+          newItems.map((it, i) => updateScheduleItem(it.id, it.id === itemId ? { ...values, sort_order: i } : { sort_order: i }))
+        );
+
+        patchDayLocal(day.id, { items: newItems });
       }
       setEditingItemId(null);
     } catch (err) {
