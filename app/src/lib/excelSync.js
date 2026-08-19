@@ -6,6 +6,14 @@ import { TRIP_META } from "../data/trip";
 
 const COLUMNS = ["id", "Day", "날짜", "일정제목", "시간", "아이콘", "제목", "메모", "팁", "장소"];
 
+// 마이크로소프트 엑셀이 파일을 열었다 저장하면 이모지(서로게이트 페어)가
+// 깨지는 경우가 있어서, 깨진 것 같으면 기존 값을 그대로 유지함.
+function isValidIcon(s) {
+  if (!s) return false;
+  if (s.includes("�")) return false; // 디코딩 실패 표시 문자
+  return /\p{Extended_Pictographic}/u.test(s);
+}
+
 export async function exportItemsExcel() {
   const days = await listDays();
   const rows = [COLUMNS];
@@ -56,10 +64,10 @@ export async function applyItemsExcel(rows) {
 
     const id = String(row["id"] ?? "").trim();
     let place = String(row["장소"] ?? "").trim() || null;
+    const rawIcon = String(row["아이콘"] ?? "").trim();
 
     const values = {
       t: String(row["시간"] ?? "").trim() || "—",
-      icon: String(row["아이콘"] ?? "").trim() || "📌",
       title,
       note: String(row["메모"] ?? "").trim(),
       tip: String(row["팁"] ?? "").trim() || null,
@@ -72,6 +80,11 @@ export async function applyItemsExcel(rows) {
         result.skipped.push(`id(${id})를 가진 기존 일정을 찾을 수 없어요 (제목: ${title})`);
         continue;
       }
+      if (isValidIcon(rawIcon)) {
+        values.icon = rawIcon;
+      } else if (rawIcon && rawIcon !== existing.icon) {
+        result.skipped.push(`"${title}"의 아이콘 값이 깨진 것 같아 기존 아이콘을 유지했어요`);
+      }
       if (place && place !== existing.place) {
         const coords = await geocodePlace(place);
         if (coords) Object.assign(values, coords);
@@ -79,6 +92,7 @@ export async function applyItemsExcel(rows) {
       await updateScheduleItem(id, values);
       result.updated++;
     } else {
+      values.icon = isValidIcon(rawIcon) ? rawIcon : "📌";
       if (place) {
         const coords = await geocodePlace(place);
         if (coords) Object.assign(values, coords);
