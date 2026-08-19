@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { useAuthRole } from "../lib/auth";
 import { listDays, updateDay, addScheduleItem, updateScheduleItem, deleteScheduleItem } from "../lib/scheduleApi";
 import { geocodePlace } from "../lib/geocode";
-import { dayDateISO, todayISO } from "../lib/format";
+import { dayDateISO, todayISO, timeKey, findTimeInsertIndex } from "../lib/format";
 import { TRIP_META } from "../data/trip";
 import DayTabs from "../components/DayTabs";
 import ItemCard from "../components/ItemCard";
@@ -117,8 +117,17 @@ export default function ScheduleView() {
         if (coords) values = { ...values, ...coords };
       }
       if (itemId === "new") {
-        const row = await addScheduleItem(day.id, values, day.items.length);
-        patchDayLocal(day.id, { items: [...day.items, { ...values, id: row.id }] });
+        const insertAt = findTimeInsertIndex(day.items, timeKey(values.t));
+        const row = await addScheduleItem(day.id, values, insertAt);
+
+        const newItems = [...day.items];
+        newItems.splice(insertAt, 0, { ...values, id: row.id });
+
+        // 새 아이템 뒤로 밀린 기존 아이템들의 sort_order를 DB에도 반영
+        const shifted = newItems.slice(insertAt + 1);
+        await Promise.all(shifted.map((it, i) => updateScheduleItem(it.id, { sort_order: insertAt + 1 + i })));
+
+        patchDayLocal(day.id, { items: newItems });
       } else {
         await updateScheduleItem(itemId, values);
         patchDayLocal(day.id, { items: day.items.map((it) => (it.id === itemId ? { ...it, ...values } : it)) });
