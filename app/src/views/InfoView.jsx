@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { CONNECTIVITY_NOTE, EMERGENCY_CONTACTS, EMERGENCY_NOTE, PACKING_LIST } from "../data/trip";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useExchangeRate } from "../hooks/useExchangeRate";
-import { exportScheduleAsText, exportScheduleAsCSV } from "../lib/exportSchedule";
+import { useAuthRole } from "../lib/auth";
+import { exportScheduleAsText } from "../lib/exportSchedule";
 import LogoutButton from "../components/LogoutButton";
+
+// xlsx 라이브러리가 무거워서(수백 KB) 관리자가 이 탭에 들어올 때만 불러오게 분리
+const ExcelSyncPanel = lazy(() => import("../components/ExcelSyncPanel"));
 
 function PackingItem({ label }) {
   const [checked, setChecked] = useLocalStorage(`pack_${label}`, "0");
@@ -27,17 +31,18 @@ function PackingItem({ label }) {
 
 export default function InfoView() {
   const { rate, setRate } = useExchangeRate();
-  const [exporting, setExporting] = useState(null); // null | "text" | "csv"
+  const { isAdmin } = useAuthRole();
+  const [exportingText, setExportingText] = useState(false);
 
-  const runExport = async (kind, fn) => {
-    setExporting(kind);
+  const runTextExport = async () => {
+    setExportingText(true);
     try {
-      await fn();
+      await exportScheduleAsText();
     } catch (err) {
       console.error("export failed", err);
       alert("내보내기에 실패했어요. 잠시 후 다시 시도해주세요.");
     } finally {
-      setExporting(null);
+      setExportingText(false);
     }
   };
 
@@ -89,25 +94,28 @@ export default function InfoView() {
       </div>
 
       <div>
-        <div className="font-display mb-1.5 text-[13px] font-bold text-ink">📤 일정 내보내기</div>
-        <div className="flex gap-1.5">
-          <button
-            onClick={() => runExport("text", exportScheduleAsText)}
-            disabled={exporting !== null}
-            className="notch-lg flex-1 border-2 border-ink bg-surface px-3.5 py-2.5 text-[12.5px] font-bold text-ink disabled:opacity-50"
-          >
-            {exporting === "text" ? "내보내는 중..." : "📄 텍스트로"}
-          </button>
-          <button
-            onClick={() => runExport("csv", exportScheduleAsCSV)}
-            disabled={exporting !== null}
-            className="notch-lg flex-1 border-2 border-ink bg-surface px-3.5 py-2.5 text-[12.5px] font-bold text-ink disabled:opacity-50"
-          >
-            {exporting === "csv" ? "내보내는 중..." : "📊 엑셀로"}
-          </button>
-        </div>
-        <p className="mt-1 text-[11px] text-muted">전체 일정(모든 날짜)을 파일로 저장해요. 엑셀 파일은 CSV 형식이라 대부분의 스프레드시트 앱에서 바로 열려요.</p>
+        <div className="font-display mb-1.5 text-[13px] font-bold text-ink">📄 일정 텍스트로 내보내기</div>
+        <button
+          onClick={runTextExport}
+          disabled={exportingText}
+          className="notch-lg w-full border-2 border-ink bg-surface px-3.5 py-2.5 text-[12.5px] font-bold text-ink disabled:opacity-50"
+        >
+          {exportingText ? "내보내는 중..." : "📄 텍스트 파일로 저장"}
+        </button>
+        <p className="mt-1 text-[11px] text-muted">전체 일정을 읽기 편한 텍스트 파일로 저장해요.</p>
       </div>
+
+      {isAdmin && (
+        <Suspense
+          fallback={
+            <div className="notch-lg border-2 border-ink bg-surface px-4 py-8 text-center text-[12.5px] text-muted">
+              불러오는 중...
+            </div>
+          }
+        >
+          <ExcelSyncPanel />
+        </Suspense>
+      )}
 
       <LogoutButton />
     </div>

@@ -39,49 +39,7 @@ function buildText(days) {
   return lines.join("\n");
 }
 
-function csvEscape(v) {
-  const s = String(v ?? "");
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
-function buildCSV(days) {
-  const header = ["Day", "날짜", "일정 제목", "컨셉", "예산", "시간", "아이콘", "항목", "메모", "팁", "장소"];
-  const rows = [header];
-
-  days.forEach((day) => {
-    if (day.items.length === 0) {
-      rows.push([day.tab, day.date, day.title, day.concept, day.budget, "", "", "", "", "", ""]);
-      return;
-    }
-    day.items.forEach((item, idx) => {
-      rows.push([
-        idx === 0 ? day.tab : "",
-        idx === 0 ? day.date : "",
-        idx === 0 ? day.title : "",
-        idx === 0 ? day.concept : "",
-        idx === 0 ? day.budget : "",
-        item.t,
-        item.icon,
-        item.title,
-        item.note,
-        item.tip ?? "",
-        item.place ?? "",
-      ]);
-    });
-  });
-
-  return rows.map((row) => row.map(csvEscape).join(",")).join("\r\n");
-}
-
 export async function exportScheduleAsText() {
   const days = await listDays();
   downloadFile(buildText(days), `${TRIP_META.title}.txt`, "text/plain;charset=utf-8");
-}
-
-const UTF8_BOM = "﻿";
-
-export async function exportScheduleAsCSV() {
-  const days = await listDays();
-  // Excel에서 한글이 깨지지 않도록 UTF-8 BOM 추가
-  downloadFile(UTF8_BOM + buildCSV(days), `${TRIP_META.title}.csv`, "text/csv;charset=utf-8");
 }
