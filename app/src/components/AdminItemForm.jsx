@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-const MOVE_OPTIONS = ["도보", "지하철", "버스", "트램", "기차", "택시", "항공", "자전거"];
-
 // DB에서 온 값은 tip/place 등이 null일 수 있어서, 폼에 들어갈 땐 전부 빈 문자열로 정규화
 const toForm = (initial) => ({
   t: initial?.t ?? "",
@@ -10,14 +8,12 @@ const toForm = (initial) => ({
   note: initial?.note ?? "",
   tip: initial?.tip ?? "",
   place: initial?.place ?? "",
-  move: initial?.move ?? "",
 });
 
 export default function AdminItemForm({ initial, onSave, onCancel, saving }) {
   const [form, setForm] = useState(() => toForm(initial));
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-  const pickMove = (m) => setForm((f) => ({ ...f, move: f.move === m ? "" : m }));
 
   const submit = (e) => {
     e.preventDefault();
@@ -29,7 +25,6 @@ export default function AdminItemForm({ initial, onSave, onCancel, saving }) {
       note: form.note.trim(),
       tip: form.tip.trim() || null,
       place: form.place.trim() || null,
-      move: form.move || null,
     });
   };
 
@@ -42,28 +37,12 @@ export default function AdminItemForm({ initial, onSave, onCancel, saving }) {
       </div>
       <input value={form.note} onChange={set("note")} placeholder="설명 (선택)" className="notch-sm border-2 border-ink bg-white px-2.5 py-2 text-[12.5px]" />
       <input value={form.tip} onChange={set("tip")} placeholder="팁 (선택)" className="notch-sm border-2 border-ink bg-white px-2.5 py-2 text-[12.5px]" />
-      <input value={form.place} onChange={set("place")} placeholder="장소 (구글맵 검색어, 선택)" className="notch-sm border-2 border-ink bg-white px-2.5 py-2 text-[12.5px]" />
+      <input value={form.place} onChange={set("place")} placeholder="주소 (정확한 도로명 주소 권장)" className="notch-sm border-2 border-ink bg-white px-2.5 py-2 text-[12.5px]" />
       {form.place.trim() && (
-        <p className="m-0 text-[10.5px] text-ink-soft">📍 저장하면 좌표를 자동으로 찾아서 오버뷰 지도에 표시해요</p>
+        <p className="m-0 text-[10.5px] text-ink-soft">
+          📍 이름만 넣으면 동명의 다른 장소가 잡힐 수 있어요. 저장하면 이 주소로 좌표를 자동으로 찾아서 오버뷰 지도에 표시해요.
+        </p>
       )}
-
-      <div>
-        <p className="m-0 mb-1 text-[10.5px] font-bold text-ink-soft">이동수단 (선택)</p>
-        <div className="flex flex-wrap gap-1">
-          {MOVE_OPTIONS.map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => pickMove(m)}
-              className={`notch-sm border-2 border-ink px-2 py-1 text-[11px] font-bold ${
-                form.move === m ? "bg-primary text-white" : "bg-white text-ink"
-              }`}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="flex gap-1.5">
         <button type="button" onClick={onCancel} className="notch-sm font-display flex-1 border-2 border-ink bg-white px-3 py-2 text-[12px] font-bold text-ink">

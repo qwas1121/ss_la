@@ -21,7 +21,7 @@ insert into schedule_items (day_id, t, icon, title, note, tip, place, lat, lng, 
 select id, '17:30', '🎡', 'Santa Monica Pier', 'Route 66 종점 표지판', '식당 예약 15분 전 도착 목표로 역산해서 출발', 'Santa Monica Pier', 34.0089, -118.4974, 4
 from schedule_days where key = 'd1';
 insert into schedule_items (day_id, t, icon, title, note, tip, place, lat, lng, sort_order)
-select id, '18:30', '🥩', 'Meat On Ocean (생일 저녁)', '예약자 Sehee Son', '디저트는 꼭 주문하고 초 요청하기. 창가는 확정 보장 아님', 'Meat On Ocean Santa Monica', 34.01275, -118.49615, 5
+select id, '18:30', '🥩', 'Meat On Ocean (생일 저녁)', '예약자 Sehee Son', '디저트는 꼭 주문하고 초 요청하기. 창가는 확정 보장 아님', '395 Santa Monica Pl Ste 305, Santa Monica, CA 90401', 34.0136758, -118.494598, 5
 from schedule_days where key = 'd1';
 
 insert into schedule_days (key, tab, date, title, concept, budget, weather, hotel_name, hotel_note, sort_order)
