@@ -1,10 +1,20 @@
 import { useState } from "react";
 
-const EMPTY = { t: "", icon: "📌", title: "", note: "", tip: "", place: "", move: "" };
 const MOVE_OPTIONS = ["도보", "지하철", "버스", "트램", "기차", "택시", "항공", "자전거"];
 
+// DB에서 온 값은 tip/place 등이 null일 수 있어서, 폼에 들어갈 땐 전부 빈 문자열로 정규화
+const toForm = (initial) => ({
+  t: initial?.t ?? "",
+  icon: initial?.icon ?? "📌",
+  title: initial?.title ?? "",
+  note: initial?.note ?? "",
+  tip: initial?.tip ?? "",
+  place: initial?.place ?? "",
+  move: initial?.move ?? "",
+});
+
 export default function AdminItemForm({ initial, onSave, onCancel, saving }) {
-  const [form, setForm] = useState(() => ({ ...EMPTY, ...initial, move: initial?.move ?? "" }));
+  const [form, setForm] = useState(() => toForm(initial));
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
   const pickMove = (m) => setForm((f) => ({ ...f, move: f.move === m ? "" : m }));
