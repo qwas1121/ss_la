@@ -27,7 +27,10 @@ const STARS = [
 
 export default function Hero() {
   return (
-    <div className="sunset-gradient stripe-overlay relative overflow-hidden px-5 pt-[22px] pb-[18px] text-white [box-shadow:0_10px_28px_-10px_oklch(76%_0.18_58_/_0.55)]">
+    <div
+      className="sunset-gradient stripe-overlay relative overflow-hidden px-5 pb-[18px] text-white [box-shadow:0_10px_28px_-10px_oklch(76%_0.18_58_/_0.55)]"
+      style={{ paddingTop: "calc(env(safe-area-inset-top) + 22px)" }}
+    >
       {STARS.map((s, i) => (
         <span
           key={i}
