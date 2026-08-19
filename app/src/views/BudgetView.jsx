@@ -41,7 +41,7 @@ export default function BudgetView() {
         ))}
       </div>
 
-      <p className="mt-4 whitespace-pre-line text-center text-[11.5px] leading-relaxed text-muted">{BUDGET_NOTE}</p>
+      {/* <p className="mt-4 whitespace-pre-line text-center text-[11.5px] leading-relaxed text-muted">{BUDGET_NOTE}</p> */}
     </div>
   );
 }
