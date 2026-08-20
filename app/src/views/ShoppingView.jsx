@@ -2,9 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { listShoppingItems, addShoppingItem, toggleShoppingItem, removeShoppingItem, updateShoppingItem } from "../lib/shoppingApi";
 import { useExchangeRate } from "../hooks/useExchangeRate";
+import { formatKRW } from "../lib/format";
 import ShopCard from "../components/ShopCard";
 import ShoppingItemForm from "../components/ShoppingItemForm";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
+
+function sumKRW(list, rate) {
+  return list.reduce((sum, it) => sum + (it.price_usd != null ? it.price_usd * (it.quantity || 1) * rate : 0), 0);
+}
 
 export default function ShoppingView() {
   const [items, setItems] = useState([]);
@@ -66,7 +71,12 @@ export default function ShoppingView() {
         <span className="ml-auto text-[11px] text-muted">정보 탭에서 수정</span>
       </div>
 
-      <div className="font-display mb-2 text-[13px] font-bold text-ink">✅ 필수</div>
+      <div className="mb-2 flex items-baseline gap-1.5">
+        <span className="font-display text-[13px] font-bold text-ink">✅ 필수</span>
+        {essentials.length > 0 && (
+          <span className="text-[11.5px] font-bold text-secondary">총 {formatKRW(sumKRW(essentials, rate))}</span>
+        )}
+      </div>
       <ShoppingItemForm list="gift" rate={rate} onSubmit={handleAdd} />
       {essentials.map((item) => (
         <ShopCard key={item.id} item={item} rate={rate} onToggle={handleToggle} onRemove={handleRemove} onEdit={handleEdit} />

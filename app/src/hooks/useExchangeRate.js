@@ -16,7 +16,8 @@ export function useExchangeRate() {
         if (value) setRateState(value);
       })
       .catch((err) => console.error("useExchangeRate load failed", err));
-    return () => clearTimeout(timer.current);
+    // 저장 타이머는 여기서 정리하지 않음 — 탭을 빨리 벗어나도(컴포넌트가 언마운트돼도)
+    // 예약된 저장은 그대로 실행돼야 환율 수정이 유실되지 않음
   }, []);
 
   const setRate = (value) => {
