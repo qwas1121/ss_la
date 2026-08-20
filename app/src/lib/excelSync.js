@@ -77,24 +77,21 @@ export async function applyItemsExcel(rows) {
     };
 
     try {
-      if (id) {
-        let existing = itemById.get(id);
-        let realId = id;
-        let healedFromStaleId = false;
-
-        if (!existing) {
-          // id가 최신이 아닐 수 있음 — 같은 날짜의 같은 제목으로 한 번 더 시도
-          const fallback = itemByDayAndTitle.get(`${day.tab}::${title}`);
-          if (fallback) {
-            existing = fallback;
-            realId = fallback.id;
-            healedFromStaleId = true;
-          } else {
-            result.skipped.push(`id(${id})를 가진 기존 일정을 찾을 수 없어요 (제목: ${title})`);
-            continue;
-          }
+      // id로 먼저 찾고, 안 되면 같은 날짜+제목으로 한 번 더 찾음 (파일이 최신이 아닐 때 대비)
+      let existing = id ? itemById.get(id) : null;
+      let realId = id;
+      let healedFromStaleId = false;
+      if (id && !existing) {
+        const fallback = itemByDayAndTitle.get(`${day.tab}::${title}`);
+        if (fallback) {
+          existing = fallback;
+          realId = fallback.id;
+          healedFromStaleId = true;
         }
+      }
 
+      if (existing) {
+        // 기존 일정 수정
         if (isValidIcon(rawIcon)) {
           values.icon = rawIcon;
         } else if (rawIcon && rawIcon !== existing.icon) {
@@ -121,6 +118,8 @@ export async function applyItemsExcel(rows) {
         if (healedFromStaleId) result.healed.push(`"${title}" (${day.tab})`);
         result.updated++;
       } else {
+        // id도 안 맞고 같은 날짜에 같은 제목도 없음 — 새 일정으로 추가
+        // (기존 행을 복사해서 만든 새 항목이라 id가 남아있는 경우도 여기로 옴)
         values.icon = isValidIcon(rawIcon) ? rawIcon : "📌";
         if (place) {
           const coords = await geocodePlace(place);
@@ -135,6 +134,7 @@ export async function applyItemsExcel(rows) {
         const shifted = currentItems.slice(insertAt + 1);
         await Promise.all(shifted.map((it, i) => updateScheduleItem(it.id, { sort_order: insertAt + 1 + i })));
 
+        if (id) result.healed.push(`"${title}": 기존 항목을 찾지 못해 새 일정으로 추가했어요`);
         result.added++;
       }
     } catch (err) {
